@@ -2,12 +2,29 @@
 #Include <v2\Yunit\Yunit>
 #Include <v2\Yunit\Window>
 
-Yunit.Use(YunitWindow).Test(Integration_Tests, Interface_Tests)
+#Include .\..\lib\interfaces\SQLite3.ahk
 
-class Integration_Tests
-{
-}
+Yunit.Use(YunitWindow).Test(Interface_Tests)
 
 class Interface_Tests
 {
+	check_module_is_loaded_automatically() => Yunit.Assert(SQLite3.hModule, 'module was not loaded')
+	check_properties_are_setup()
+	{
+		props := ['hModule', 'bin', 'dllPath', 'ptrs']
+		for prop in props
+			Yunit.Assert(SQLite3.HasOwnProp(prop), prop ' was not initialized')
+	}
+	check_property_types()
+	{
+		props := Map(
+			'hModule', 'Integer',
+			'bin',     'String',
+			'dllPath', 'String',
+			'ptrs',    'Map'
+		)
+
+		for prop,prop_type in props
+			Yunit.Assert( Type(SQLite3.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
+	}
 }
