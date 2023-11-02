@@ -1,4 +1,4 @@
-﻿#Requires Autohotkey v2.0+ ; prefer 64-Bit
+#Requires Autohotkey v2.0+ ; prefer 64-Bit
 #Include <v2\Yunit\Yunit>
 #Include <v2\Yunit\Window>
 
@@ -25,6 +25,9 @@ class Interface_Tests
 		)
 
 		for prop,prop_type in props
+		{
+			Yunit.Assert(SQLite3.HasOwnProp(prop), prop ' was not initialized')
 			Yunit.Assert( Type(SQLite3.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
+		}
 	}
 }
