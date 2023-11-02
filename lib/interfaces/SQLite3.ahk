@@ -98,6 +98,28 @@ class SQLite3
 		return res
 	}
 
+	static get_table(pSqlite, statement, &result, &nrow, &ncol, &errmsg)
+	{
+		params := [
+			{name: 'pSqlite', type: 'Integer', value: pSqlite},
+			{name: 'statement', type: 'String', value: statement}
+		]
+		SQLite3.check_params(params)
+
+		sql := Buffer(StrPut(statement, 'utf-8'))
+		StrPut(statement, sql, 'utf-8')
+
+		res := DllCall(SQLite3.bin '\sqlite3_get_table',
+			'ptr', pSqlite,     ; An open database
+			'ptr', sql,         ; SQL to be evaluated
+			'ptr*', &result:=0,    ; Results of the query
+			'int*', &nrow:=0,      ; Number of result rows written here
+			'int*', &ncol:=0,      ; Number of result columns written here
+			'ptr*', &errMsg:=0, ; Error msg written here
+			'int')
+		return res
+	}
+
 
 	static check_params(params)
 	{

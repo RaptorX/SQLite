@@ -37,7 +37,7 @@ class tInterface
 		test1_open_v2()
 		{
 			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
-			
+
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 			Yunit.Assert(pDB != false, 'the database pointer was not set')
@@ -46,7 +46,7 @@ class tInterface
 		test2_close_v2()
 		{
 			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
-			
+
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 			SQLite3.close_v2(pDB)
@@ -61,13 +61,43 @@ class tInterface
 			static statement := "CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT);"
 
 			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
-			
+
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 
 			res := SQLite3.exec(pDB, statement, &errmsg)
 			errmsg := 'Failed to execute simple SQL statement: ' (errmsg ? StrGet(errmsg, 'utf-8') : '')
 			Yunit.Assert(res = SQLITE_OK, errmsg)
+			SQLite3.close_v2(pDB)
+		}
+		test8_get_table()
+		{
+
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+
+			statements := [
+				{sql:'CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT);' , err:'create table: '},
+				{sql:'INSERT INTO test (name) VALUES ("Alice"), ("Bob");'     , err:'insert data: '},
+				{sql:'SELECT * FROM test;'                                    , err:'execute SQL query: '}
+			]
+
+			for statement in statements
+			{
+				if (statement.sql ~= "SELECT")
+					res := SQLite3.get_table(pDB, statement.sql, &result, &nrow, &ncol, &errmsg)
+				else
+					res := SQLite3.exec(pDB, statement.sql, &errmsg)
+
+				errmsg := 'Failed to ' statement.err (errmsg ? StrGet(errmsg, 'utf-8') : '')
+				Yunit.Assert(res = SQLITE_OK, errmsg)
+			}
+
+			Yunit.Assert(nrow = 2, "Incorrect number of rows: " . nrow)
+			Yunit.Assert(ncol = 2, "Incorrect number of columns: " . ncol)
+
 			SQLite3.close_v2(pDB)
 		}
 	}
@@ -93,7 +123,7 @@ class tInterface
 		test3_close_v2_invalid_pointer()
 		{
 			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
-			
+
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 
@@ -110,7 +140,7 @@ class tInterface
 			static statement := "INVALID SQL STATEMENT"
 
 			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
-			
+
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 
@@ -118,6 +148,30 @@ class tInterface
 			errmsg := 'Incorrect result code: ' (errmsg ? StrGet(errmsg, 'utf-8') : '')
 			Yunit.Assert(res = SQLITE_ERROR, errmsg)
 			SQLite3.close_v2(pDB)
+		}
+		test_get_table_invalid_pointer()
+		{
+			try
+			{
+				statement := "SELECT * FROM test;"
+				res := SQLite3.get_table('invalid', statement, &result, &nrow, &ncol, &errmsg)
+				Yunit.Assert(false, "get_table should throw an exception with an invalid pSqlite")
+			}
+			catch
+				Yunit.Assert(true)
+		}
+		test_get_table_invalid_statement()
+		{
+			try
+			{
+				res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+				Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+
+				res := SQLite3.get_table(pDB, 1, &result, &nrow, &ncol, &errmsg)
+				Yunit.Assert(false, "get_table should throw an exception with an invalid statement")
+			}
+			catch
+				Yunit.Assert(true)
 		}
 	}
 }
