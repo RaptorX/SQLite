@@ -43,6 +43,19 @@ class tInterface
 			Yunit.Assert(pDB != false, 'the database pointer was not set')
 			SQLite3.close_v2(pDB)
 		}
+		test2_close_v2()
+		{
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+			SQLite3.close_v2(pDB)
+			Yunit.Assert(!SQLite3.ptrs.Has(pDB), 'the database pointer was not removed')
+
+			; as the database is closed the following call should return
+			; code 21 which is 'bad parameter or other API misuse'
+			Yunit.Assert(SQLite3.errcode(pDB) = SQLITE_MISUSE, 'the expected error code was not returned')
+		}
 	}
 
 	Class t2InvalidInput
@@ -59,6 +72,21 @@ class tInterface
 			{
 				res := SQLite3.open_v2('test.db', &pDB, tInterface.flags, 1)
 				Yunit.Assert(false, 'open_v2 should throw an exception when zVfs is set')
+			}
+			catch Error
+				Yunit.Assert(true)
+		}
+		test3_close_v2_invalid_pointer()
+		{
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+
+			try
+			{
+				SQLite3.close_v2('invalid pointer')
+				Yunit.Assert(false)
 			}
 			catch Error
 				Yunit.Assert(true)

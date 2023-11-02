@@ -67,6 +67,14 @@ class SQLite3
 		return res
 	}
 
+	static close_v2(pSqlite)
+	{
+		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
+		DllCall(SQLite3.bin '\sqlite3_close_v2', 'ptr', pSqlite)
+		SQLite3.ptrs.Delete(pSqlite)
+	}
+
+
 	static check_params(params)
 	{
 		if (t:=Type(params)) != 'Array'
