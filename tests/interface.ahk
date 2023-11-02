@@ -30,4 +30,10 @@ class Interface_Tests
 			Yunit.Assert( Type(SQLite3.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
 		}
 	}
+	t3version_strings()
+	{
+		Yunit.Assert(SQLite3.sourceid() == SQLITE_SOURCE_ID, 'source ids dont match')
+		Yunit.Assert(SQLite3.libversion() == SQLITE_VERSION, 'version strings dont match')
+		Yunit.Assert(SQLite3.libversion_number() = SQLITE_VERSION_NUMBER, 'version numbers dont match')
+	}
 }
