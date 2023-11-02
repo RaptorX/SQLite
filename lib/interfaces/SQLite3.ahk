@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0+ ; prefer 64-Bit
+﻿#Requires AutoHotkey v2.0+ ; prefer 64-Bit
 
 #Include .\..\headers\sqlite3.h.ahk
 
@@ -144,6 +144,18 @@ class SQLite3
 		return DllCall(SQLite3.bin '\sqlite3_extended_errcode', 'ptr', pSqlite, 'int')
 	}
 
+	; not tested
+	static free(strPtr)
+	{
+		SQLite3.check_params([{name: 'strPtr', type: 'Integer', value: strPtr}])
+		return DllCall(SQLite3.bin '\sqlite3_free', 'ptr', strPtr)
+	}
+
+	static free_table(tablePtr)
+	{
+		SQLite3.check_params([{name: 'tablePtr', type: 'Integer', value: tablePtr}])
+		return DllCall(SQLite3.bin '\sqlite3_free_table', 'ptr', tablePtr)
+	}
 
 	static check_params(params)
 	{
