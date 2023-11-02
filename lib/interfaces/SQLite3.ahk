@@ -74,6 +74,30 @@ class SQLite3
 		SQLite3.ptrs.Delete(pSqlite)
 	}
 
+	static exec(pSqlite, statement, &errmsg, callback?, pArg?)
+	{
+		if IsSet(callback) || IsSet(pArg)
+			throw ValueError('Callbacks are not implemented yet', A_ThisFunc, 'callback|pArg')
+
+		params := [
+			{name: 'pSqlite', type: 'Integer', value: pSqlite},
+			{name: 'statement', type: 'String', value: statement}
+		]
+		SQLite3.check_params(params)
+
+		sql := Buffer(StrPut(statement, 'utf-8'))
+		StrPut(statement, sql, 'utf-8')
+
+		res := DllCall(SQLite3.bin '\sqlite3_exec',
+			'ptr', pSqlite,      ; An open database
+			'ptr', sql,          ; SQL to be evaluated
+			'ptr', 0,            ; Callback function        NOT IMPLEMENTED
+			'ptr', 0,            ; 1st argument to callback NOT IMPLEMENTED
+			'ptr*', &errmsg:=0, ; Error msg written here
+			'int')
+		return res
+	}
+
 
 	static check_params(params)
 	{

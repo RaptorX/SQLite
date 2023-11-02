@@ -56,6 +56,20 @@ class tInterface
 			; code 21 which is 'bad parameter or other API misuse'
 			Yunit.Assert(SQLite3.errcode(pDB) = SQLITE_MISUSE, 'the expected error code was not returned')
 		}
+		test7_exec()
+		{
+			static statement := "CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT);"
+
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+
+			res := SQLite3.exec(pDB, statement, &errmsg)
+			errmsg := 'Failed to execute simple SQL statement: ' (errmsg ? StrGet(errmsg, 'utf-8') : '')
+			Yunit.Assert(res = SQLITE_OK, errmsg)
+			SQLite3.close_v2(pDB)
+		}
 	}
 
 	Class t2InvalidInput
@@ -90,6 +104,20 @@ class tInterface
 			}
 			catch Error
 				Yunit.Assert(true)
+		}
+		test8_exec_invalid_statement()
+		{
+			static statement := "INVALID SQL STATEMENT"
+
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+
+			res := SQLite3.exec(pDB, statement, &errmsg)
+			errmsg := 'Incorrect result code: ' (errmsg ? StrGet(errmsg, 'utf-8') : '')
+			Yunit.Assert(res = SQLITE_ERROR, errmsg)
+			SQLite3.close_v2(pDB)
 		}
 	}
 }
