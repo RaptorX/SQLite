@@ -120,6 +120,30 @@ class SQLite3
 		return res
 	}
 
+	static errstr(resCode)
+	{
+		SQLite3.check_params([{name: 'resCode', type: 'Integer', value: resCode}])
+		return StrGet(DllCall(SQLite3.bin '\sqlite3_errstr', 'int', resCode, 'ptr'), 'utf-8')
+	}
+
+	static errmsg(pSqlite)
+	{
+		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
+		return StrGet(DllCall(SQLite3.bin '\sqlite3_errmsg', 'ptr', pSqlite, 'ptr'), 'utf-8')
+	}
+
+	static errcode(pSqlite)
+	{
+		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
+		return DllCall(SQLite3.bin '\sqlite3_errcode', 'ptr', pSqlite, 'int')
+	}
+
+	static extended_errcode(pSqlite)
+	{
+		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
+		return DllCall(SQLite3.bin '\sqlite3_extended_errcode', 'ptr', pSqlite, 'int')
+	}
+
 
 	static check_params(params)
 	{

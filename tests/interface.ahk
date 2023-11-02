@@ -1,4 +1,4 @@
-#Requires Autohotkey v2.0+ ; prefer 64-Bit
+﻿#Requires Autohotkey v2.0+ ; prefer 64-Bit
 #Include <v2\Yunit\Yunit>
 #Include <v2\Yunit\Window>
 
@@ -55,6 +55,58 @@ class tInterface
 			; as the database is closed the following call should return
 			; code 21 which is 'bad parameter or other API misuse'
 			Yunit.Assert(SQLite3.errcode(pDB) = SQLITE_MISUSE, 'the expected error code was not returned')
+		}
+		test3_errstr()
+		{
+			str := SQLite3.errstr(SQLITE_OK)
+			Yunit.Assert(
+				str == "not an error",
+				"errstr should return 'not an error' with resCode SQLITE_OK"
+			)
+			str := SQLite3.errstr(SQLITE_MISUSE)
+			Yunit.Assert(
+				str == 'bad parameter or other API misuse',
+				'errstr should return "bad parameter or other API misuse" with resCode SQLITE_MISUSE'
+			)
+		}
+		test4_errmsg()
+		{
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+			SQLite3.close_v2(pDB)
+
+			; as the database is closed the following call should return
+			; the string 'bad parameter or other API misuse'
+			res := SQLite3.errmsg(pDB) = 'bad parameter or other API misuse'
+			Yunit.Assert(res, 'the expected error code was not returned')
+		}
+		test5_errcode()
+		{
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+			SQLite3.close_v2(pDB)
+
+			; as the database is closed the following call should return
+			; code 21 which is 'bad parameter or other API misuse'
+			res := SQLite3.errcode(pDB)
+			Yunit.Assert(res = SQLITE_MISUSE, 'the expected error code was not returned')
+		}
+		test6_extended_errcode()
+		{
+			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+
+			; check that the database opened without issues
+			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
+			SQLite3.close_v2(pDB)
+
+			; as the database is closed the following call should return
+			; code 21 which is 'bad parameter or other API misuse'
+			res := SQLite3.extended_errcode(pDB)
+			Yunit.Assert(res = SQLITE_MISUSE, 'the expected error code was not returned')
 		}
 		test7_exec()
 		{
@@ -133,6 +185,47 @@ class tInterface
 				Yunit.Assert(false)
 			}
 			catch Error
+				Yunit.Assert(true)
+		}
+		test4_errstr_invalid_resCode()
+		{
+
+			try
+			{
+				res := SQLite3.errstr('invalid resCode')
+				Yunit.Assert(false, "errstr should throw an exception with an invalid resCode")
+			}
+			catch
+				Yunit.Assert(true)
+		}
+		test5_errmsg_invalid_pointer()
+		{
+			try
+			{
+				result := SQLite3.errmsg('invalid')
+				Yunit.Assert(false, "errmsg should throw an exception with an invalid database pointer")
+			}
+			catch
+				Yunit.Assert(true)
+		}
+		test6_errcode_invalid_pointer()
+		{
+			try
+			{
+				result := SQLite3.errcode('invalid')
+				Yunit.Assert(false, "errcode should throw an exception with an invalid database pointer")
+			}
+			catch
+				Yunit.Assert(true)
+		}
+		test7_extended_errcode_invalid_pointer()
+		{
+			try
+			{
+				result := SQLite3.extended_errcode('invalid')
+				Yunit.Assert(false, "extended_errcode should throw an exception with an invalid database pointer")
+			}
+			catch
 				Yunit.Assert(true)
 		}
 		test8_exec_invalid_statement()
