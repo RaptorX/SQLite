@@ -153,7 +153,6 @@ class tInterface
 			SQLite3.close_v2(pDB)
 		}
 	}
-
 	Class t2InvalidInput
 	{
 		test1_open_v2_invalid_flags()
