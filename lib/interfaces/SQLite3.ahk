@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0+ ; prefer 64-Bit
+#Requires AutoHotkey v2.0+ ; prefer 64-Bit
 
 #Include .\..\headers\sqlite3.h.ahk
 
@@ -8,8 +8,6 @@ class SQLite3
 	static dllPath := A_IsCompiled ? A_ScriptDir '\lib\bin' : A_LineFile '\..\..\bin'
 	static ptrs    := Map()
 	static hModule := 0
-
-	static valueErrorTemplate := 'Expected a {1} but received a {2}'
 
 	static __New()
 	{
@@ -159,6 +157,8 @@ class SQLite3
 
 	static check_params(params)
 	{
+		static valueErrorTemplate := 'Expected a {1} for {2} but received a {3}'
+
 		if (t:=Type(params)) != 'Array'
 			throw ValueError(Format(SQLite3.valueErrorTemplate, 'Array', t), A_ThisFunc, 'params')
 
@@ -166,7 +166,7 @@ class SQLite3
 		{
 			if (t:=Type(param.value)) != param.type
 			{
-				errmsg := Format(SQLite3.valueErrorTemplate, param.type, t)
+				errmsg := Format(SQLite3.valueErrorTemplate, param.type, param.name, t)
 				throw ValueError(errmsg, A_ThisFunc, param.name)
 			}
 		}
