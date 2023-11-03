@@ -50,7 +50,6 @@ class SQLite3
 		fName := Buffer(StrPut(filename, 'utf-8'))
 		StrPut(filename, fName, 'utf-8')
 
-
 		res := DllCall(SQLite3.bin '\sqlite3_open_v2',
 			'ptr' , fName,        ; Database filename (UTF-8)
 			'ptr*', &pSqlite:=0,  ; OUT: SQLite db handle
@@ -107,11 +106,11 @@ class SQLite3
 		StrPut(statement, sql, 'utf-8')
 
 		res := DllCall(SQLite3.bin '\sqlite3_get_table',
-			'ptr', pSqlite,     ; An open database
-			'ptr', sql,         ; SQL to be evaluated
-			'ptr*', &result:=0,    ; Results of the query
-			'int*', &nrow:=0,      ; Number of result rows written here
-			'int*', &ncol:=0,      ; Number of result columns written here
+			'ptr' , pSqlite,    ; An open database
+			'ptr' , sql,        ; SQL to be evaluated
+			'ptr*', &result:=0, ; Results of the query
+			'int*', &nrow:=0,   ; Number of result rows written here
+			'int*', &ncol:=0,   ; Number of result columns written here
 			'ptr*', &errMsg:=0, ; Error msg written here
 			'int')
 		return res
@@ -145,13 +144,13 @@ class SQLite3
 	static free(strPtr)
 	{
 		SQLite3.check_params([{name: 'strPtr', type: 'Integer', value: strPtr}])
-		return DllCall(SQLite3.bin '\sqlite3_free', 'ptr', strPtr)
+		DllCall(SQLite3.bin '\sqlite3_free', 'ptr', strPtr)
 	}
 
 	static free_table(tablePtr)
 	{
 		SQLite3.check_params([{name: 'tablePtr', type: 'Integer', value: tablePtr}])
-		return DllCall(SQLite3.bin '\sqlite3_free_table', 'ptr', tablePtr)
+		DllCall(SQLite3.bin '\sqlite3_free_table', 'ptr', tablePtr)
 	}
 
 	static check_params(params)
