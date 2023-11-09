@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0+ ; prefer 64-Bit
+﻿#Requires AutoHotkey v2.0+ ; prefer 64-Bit
 
 #Include .\..\headers\sqlite3.h.ahk
 
@@ -546,6 +546,104 @@ class SQLite3
 			{
 				errmsg := Format(SQLite3.valueErrorTemplate, param.type, param.name, t)
 				throw ValueError(errmsg, A_ThisFunc, param.name)
+			}
+		}
+	}
+
+	class Table
+	{
+		parent  := 0
+		count   := 0
+		headers := []
+		rows    := []
+
+		__New(db, statement, pTable, nRows, nCols)
+		{
+			RegExMatch(statement, 'im)from\s+(?<name>.*?)(\s|$)', &matched)
+			this.parent := db
+			this.count := nRows
+			this.name := matched['name']
+
+			row    := 0
+			fields := []
+			OffSet := 0 - A_PtrSize
+			loop (nRows+1) * nCols
+			{
+				nxtPtr:=NumGet(pTable, OffSet += A_PtrSize, 'ptr')
+				data := nxtPtr ? StrGet(nxtPtr, 'UTF-8') : '' ; We need to handle NULL data
+
+				if A_Index <= nCols
+					this.headers.Push(data)
+				else
+				{
+					fields.Push(data)
+					if Mod(A_Index, nCols)
+						continue
+
+					this.rows.Push(SQLite.Table.Row(++row, this.headers, fields))
+					fields := []
+				}
+			}
+
+			SQLite3.free_table(pTable)
+			return this
+		}
+
+		__Item[row, header?]
+		{
+			get
+			{
+				if IsSet(header)
+					return this.rows[row].%header%
+				else
+					return this.rows[row]
+			}
+			set => this.rows[row].%header% := value
+		}
+
+		class Row
+		{
+			data     := []
+			_number_ := 0
+
+			count {
+				get => this.data.Length
+			}
+
+			__Enum(nVars)
+			{
+				return fields
+
+				fields(&hdr, &val)
+				{
+					static pos := 0
+					if pos = this.data.Length
+						return pos := false
+
+					field := this.data[pos += 1]
+					hdr := field.header
+
+					; always get the current value
+					val := this.%field.header%
+				}
+			}
+
+			__New(rNum, headers, data)
+			{
+				this._number_ := rNum
+				for header in headers
+					this.data.Push({header:header, value:data[A_Index]})
+
+				return this
+			}
+
+			__Get(Key, Params)
+			{
+				for item in this.data
+					if item.header = Key
+						return item.value
+
+				return ''
 			}
 		}
 	}

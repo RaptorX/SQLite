@@ -225,6 +225,20 @@ class SQLite extends SQLite3
 	 */
 	Exec(statement)
 	{
+		if statement ~= 'i)SELECT'
+		{
+			res := SQLite3.get_table(this.ptr, statement, &pTable, &rows, &cols, &errMsg)
+
+			if res != SQLITE_OK || errMsg
+			{
+				this.status := res
+				this.error .= ': ' StrGet(errMsg, 'utf-8')
+				SQLite3.free(errMsg)
+			}
+			return SQLite3.Table(this, statement, pTable, rows, cols)
+		}
+		else
+		{
 			res := SQLite3.exec(this.ptr, statement, &errMsg)
 
 			if res != SQLITE_OK || errMsg
@@ -234,5 +248,6 @@ class SQLite extends SQLite3
 				SQLite3.free(errMsg)
 			}
 			return res
+		}
 	}
 }
