@@ -4,4 +4,17 @@
 
 class SQLite extends SQLite3
 {
+	ptr := 0
+	path := ''
+	error := ''
+	status {
+		get => this._status
+		set {
+			if (value != SQLITE_OK)
+				this.error := SQLite3.errstr(value)
+
+			return this._status := value
+		}
+
+	}
 }
