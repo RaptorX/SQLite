@@ -32,4 +32,18 @@ class tSqliteInterface
 			Yunit.Assert(Type(db.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
 		}
 	}
+	test2_database_is_opened_correctly()
+	{
+		db := this.db
+		Yunit.Assert(db.status == SQLITE_OK, 'status is not OK: ' db.error)
+		Yunit.Assert(db.ptr != 0, 'ptr is 0')
+		Yunit.Assert(db.error == '', db.error)
+		Yunit.Assert(db.path == 'test.db', 'path is not test.db')
+
+		db := SQLite.Open('test.db', this.flags)
+		Yunit.Assert(db.status == SQLITE_OK, 'status is not OK: ' db.error)
+		Yunit.Assert(db.ptr != 0, 'ptr is 0')
+		Yunit.Assert(db.error == '', db.error)
+		Yunit.Assert(db.path == 'test.db', 'path is not test.db')
+	}
 }
