@@ -157,4 +157,37 @@ class SQLite extends SQLite3
 		return this
 	}
 
+	/**
+	 * @description Closes the database connection.
+	 * - [Documentation](https://www.sqlite.org/c3ref/close.html)
+	 *
+	 * ---
+	 * #### Method Info
+	 * @static
+	 * @method Close
+	 * @memberof SQLite
+	 *
+	 * ---
+	 * #### Error Handling
+	 * @throws {ValueError} if the wrong type is passed for the parameter.
+	 *
+	 * ----
+	 * #### Returns
+	 * @returns {integer} SQLITE_OK if the database connection was closed successfully.
+	 *
+	 * ---
+	 * #### Notes
+	 * If this method is called with unfinalized prepared statements, unclosed `BLOB` handlers, and/or unfinished
+	 * `sqlite3_backups`, it returns `SQLITE_OK` regardless, but instead of deallocating the database connection
+	 * immediately, it marks the database connection as an unusable "zombie" and makes arrangements
+	 * to automatically deallocate the database connection after all prepared statements are finalized,
+	 * all `BLOB` handles are closed, and all backups have finished.
+	 */
+	Close()
+	{
+		SQLite3.close_v2(this.ptr)
+		this.path := ''
+		this.ptr := 0
+		return this.status := SQLITE_OK
+	}
 }

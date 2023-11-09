@@ -46,4 +46,13 @@ class tSqliteInterface
 		Yunit.Assert(db.error == '', db.error)
 		Yunit.Assert(db.path == 'test.db', 'path is not test.db')
 	}
+	test3_database_is_closed_correctly()
+	{
+		db := this.db
+		db.Close()
+		Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+		Yunit.Assert(db.ptr = 0, 'ptr is not 0')
+		Yunit.Assert(db.error == '', db.error)
+		Yunit.Assert(db.path == '', 'path is not empty')
+	}
 }
