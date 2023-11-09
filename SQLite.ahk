@@ -192,4 +192,47 @@ class SQLite extends SQLite3
 		this.ptr := 0
 		return this.status := SQLITE_OK
 	}
+
+	/**
+	 * @description Executes SQL commands provided by an input string.
+	 * - [Documentation](https://www.sqlite.org/c3ref/exec.html)
+	 *
+	 * ---
+	 * #### Method Info
+	 * @static
+	 * @method Exec
+	 * @memberof SQLite
+	 *
+	 * ---
+	 * #### Parameters
+	 * @param {string}  statement the SQL statement to be executed
+	 *
+	 * ---
+	 * #### Error Handling
+	 * @throws {ValueError} if the wrong type is passed
+	 *
+	 * ----
+	 * #### Returns
+	 * @returns {integer|SQLite3.Table} `sqlite3` result code or a `SQLite3.Table` object
+	 *                                  if using a `SELECT` statement.
+	 *
+	 * ---
+	 * #### Notes
+	 * If an error occurs while evaluating the SQL statements passed in `statement`, then execution of the current
+	 * statement stops and subsequent statements are skipped.
+	 *
+	 * `this.status` is set to the appropriate error code and `this.error` is set to contain the error message.
+	 */
+	Exec(statement)
+	{
+			res := SQLite3.exec(this.ptr, statement, &errMsg)
+
+			if res != SQLITE_OK || errMsg
+			{
+				this.status := res
+				this.error .= ': ' StrGet(errMsg, 'utf-8')
+				SQLite3.free(errMsg)
+			}
+			return res
+	}
 }

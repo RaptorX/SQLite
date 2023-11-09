@@ -71,4 +71,24 @@ class tSqliteInterface
 		catch
 			Yunit.Assert(true)
 	}
+
+	class ExecutingStatements
+	{
+		begin()
+		{
+			this.flags := SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY
+			this.db := SQLite('test.db', this.flags)
+		}
+		end() => SQLite3.close_v2(this.db.ptr)
+
+		test1_create_a_new_database()
+		{
+			db := this.db
+			db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
+			Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+			Yunit.Assert(db.error == '', db.error)
+
+			db.Close()
+		}
+	}
 }
