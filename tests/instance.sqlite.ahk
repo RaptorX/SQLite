@@ -55,4 +55,20 @@ class tSqliteInterface
 		Yunit.Assert(db.error == '', db.error)
 		Yunit.Assert(db.path == '', 'path is not empty')
 	}
+	test4_database_is_closed_when_object_is_destroyed()
+	{
+		db := this.db
+		Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+		Yunit.Assert(db.ptr != 0, 'ptr is 0')
+		Yunit.Assert(db.error == '', db.error)
+		Yunit.Assert(db.path == 'test.db', 'path is not test.db')
+		db := ''
+		try
+		{
+			var := db.ptr
+			Yunit.Assert(false, 'an error should be thrown')
+		}
+		catch
+			Yunit.Assert(true)
+	}
 }

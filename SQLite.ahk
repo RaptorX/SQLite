@@ -157,6 +157,8 @@ class SQLite extends SQLite3
 		return this
 	}
 
+	__Delete() => SQLite3.close_v2(this.ptr)
+
 	/**
 	 * @description Closes the database connection.
 	 * - [Documentation](https://www.sqlite.org/c3ref/close.html)
