@@ -192,7 +192,7 @@ class SQLite3
 	 *
 	 * ----
 	 * #### Returns
-	 * @returns {Integer} `sqlite3` result code
+	 * @returns {integer} `sqlite3` result code
 	 *
 	 * ---
 	 * #### Notes
@@ -459,7 +459,7 @@ class SQLite3
 	 * Passing a `NULL` pointer to `SQLite3.free` is harmless. After being freed, memory should neither be read
 	 * nor written. Even reading previously freed memory might result in a segmentation fault or other
 	 * severe error.
-	 * 
+	 *
 	 * Memory corruption, a segmentation fault, or other severe error might result if `SQLite3.free` is called
 	 * with a non-`NULL` pointer that was not obtained from a `sqlite3` memory allocation method.
 	 */
@@ -495,7 +495,7 @@ class SQLite3
 	 * #### Notes
 	 * After the application has finished with the result from `SQLite3.get_table`, it must pass the result table
 	 * pointer to this function in order to release the memory that was allocated.
-	 * 
+	 *
 	 * Because of the way the `SQLite3.malloc` happens within `SQLite3.get_table`, the calling function must
 	 * not try to call `SQLite3.free` directly. Only `SQLite3.free_table` is able to release the memory
 	 * properly and safely.

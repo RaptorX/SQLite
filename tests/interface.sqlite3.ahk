@@ -4,9 +4,9 @@
 
 #Include .\..\lib\interfaces\SQLite3.ahk
 
-Yunit.Use(YunitWindow).Test(tInterface)
+Yunit.Use(YunitWindow).Test(tSqlite3Interface)
 
-class tInterface
+class tSqlite3Interface
 {
 	static flags := SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY
 
@@ -36,7 +36,7 @@ class tInterface
 	{
 		test1_open_v2()
 		{
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -45,7 +45,7 @@ class tInterface
 		}
 		test2_close_v2()
 		{
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -71,7 +71,7 @@ class tInterface
 		}
 		test4_errmsg()
 		{
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -84,7 +84,7 @@ class tInterface
 		}
 		test5_errcode()
 		{
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -97,7 +97,7 @@ class tInterface
 		}
 		test6_extended_errcode()
 		{
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -112,7 +112,7 @@ class tInterface
 		{
 			static statement := "CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT);"
 
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -125,7 +125,7 @@ class tInterface
 		test8_get_table()
 		{
 
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -165,7 +165,7 @@ class tInterface
 		{
 			try
 			{
-				res := SQLite3.open_v2('test.db', &pDB, tInterface.flags, 1)
+				res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags, 1)
 				Yunit.Assert(false, 'open_v2 should throw an exception when zVfs is set')
 			}
 			catch Error
@@ -173,7 +173,7 @@ class tInterface
 		}
 		test3_close_v2_invalid_pointer()
 		{
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -231,7 +231,7 @@ class tInterface
 		{
 			static statement := "INVALID SQL STATEMENT"
 
-			res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
@@ -256,7 +256,7 @@ class tInterface
 		{
 			try
 			{
-				res := SQLite3.open_v2('test.db', &pDB, tInterface.flags)
+				res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 				Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 
 				res := SQLite3.get_table(pDB, 1, &result, &nrow, &ncol, &errmsg)
