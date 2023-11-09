@@ -1,4 +1,4 @@
-﻿#Requires AutoHotkey v2.0+ ; prefer 64-Bit
+#Requires AutoHotkey v2.0+ ; prefer 64-Bit
 
 #Include .\..\headers\sqlite3.h.ahk
 
@@ -163,7 +163,7 @@ class SQLite3
 	static close_v2(pSqlite)
 	{
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
-		SQLite3.ptrs.Delete(pSqlite)
+		try SQLite3.ptrs.Delete(pSqlite)
 		return DllCall(SQLite3.bin '\sqlite3_close_v2', 'ptr', pSqlite)
 	}
 
