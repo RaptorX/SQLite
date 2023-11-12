@@ -1,4 +1,4 @@
-#Requires AutoHotkey v2.0+ ; prefer 64-Bit
+﻿#Requires AutoHotkey v2.0+ ; prefer 64-Bit
 
 #Include .\..\headers\sqlite3.h.ahk
 
@@ -691,13 +691,75 @@ class SQLite3
 			throw ValueError(errmsg, A_ThisFunc, param.name)
 		}
 	}
+
+	/**
+	 * @description Represents a table in an `SQLite3` database.
+	 *
+	 * ---
+	 * #### Properties
+	 * @prop {string}  name    {@link SQLite.Table.name    SQLite.Table.name}    - The name of the SQLite table
+	 * @prop {SQLite}  parent  {@link SQLite.Table.parent  SQLite.Table.parent}  - The instance that owns the table
+	 * @prop {integer} count   {@link SQLite.Table.count   SQLite.Table.count}   - The number of rows in the table
+	 * @prop {array}   headers {@link SQLite.Table.headers SQLite.Table.headers} - The column headers of the table
+	 * @prop {array}   rows    {@link SQLite.Table.rows    SQLite.Table.rows}    - List of `SQLite3.Table.Row`
+	 *
+	 * ---
+	 * #### Methods
+	 * @method __New  - Creates a new instance of a `SQLite3.Table`.
+	 * @method __Item - Allows Getting or setting a row or field/cell value using bracket syntax.
+	 *
+	 * ---
+	 * #### Child Classes
+	 * @class Row - Represents a row in an `SQLite3.Table`.
+	 */
 	class Table
 	{
+
+		/** @prop {string} name The name of the SQLite table */
+		name    := ''
+
+		/** @prop {SQLite} parent The instance that owns the table */
 		parent  := 0
+
+		/** @prop {integer} count The number of rows in the table */
 		count   := 0
+
+		/** @prop {array} headers The column headers of the table */
 		headers := []
+
+		/** @prop {array} rows List of SQLite3.Table.Row objects */
 		rows    := []
 
+		/**
+		 * @description Creates a new instance of a `SQLite3.Table`.
+		 * ---
+		 * #### Method Info
+		 * @static
+		 * @method
+		 * @memberof SQLite3
+		 *
+		 * ---
+		 * #### Parameters
+		 * @param {SQLite}  db        - The database object.
+		 * @param {string}  statement - The SQL statement.
+		 * @param {pointer} pTable    - A pointer to the table.
+		 * @param {integer} nRows     - The number of rows in the table.
+		 * @param {integer} nCols     - The number of columns in the table.
+		 *
+		 * ---
+		 * #### Error Handling
+		 * @throws {ValueError} If any of the parameters are invalid.
+		 *
+		 * ----
+		 * #### Returns
+		 * @returns {SQLite3.Table} A new instance of the `SQLite3.Table`.
+		 *
+		 * ---
+		 * #### Notes
+		 * - The `name` property of the instance is set to the name of the table in the SQL statement.
+		 * - The `headers` property of the instance is an array of column names.
+		 * - The `rows` property of the instance is an array of row objects.
+		 */
 		__New(db, statement, pTable, nRows, nCols)
 		{
 			params := [
@@ -757,11 +819,33 @@ class SQLite3
 			set => this.rows[row].%header% := value
 		}
 
+
+		/**
+		 * @description Represents a row in a `SQLite.Table`
+		 *
+		 * ---
+		 * #### Properties
+		 * @prop {array}    data     The fields/cells in the row
+		 * @prop {integer}  _number_ The row number
+		 * @prop {integer}  count    Returns the number of fields/cells in the row
+		 *
+		 * ---
+		 * #### Methods
+		 * @method __Enum Enumerates the fields in the row
+		 * @method __New  Initializes a new instance of the Row class
+		 * @method __Get  Gets the value of a field in the row
+		 *
+		 */
 		class Row
 		{
+
+			/** @prop {array} data The fields/cells in the row */
 			data     := []
+
+			/** @prop {integer} _number_ The row number */
 			_number_ := 0
 
+			/** @prop {integer} count Returns the number of fields/cells in the row */
 			count {
 				get => this.data.Length
 			}
