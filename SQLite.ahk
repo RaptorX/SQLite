@@ -4,12 +4,12 @@
 
 /**
  * @description Main interface for the `SQLite` AutoHotkey wrapper class. Represents a `SQLite` database connection.
- * 
+ *
  * ---
  * @version v0.1.0
  * @author  RaptorX
  * @email   graptorx@gmail.com
- * 
+ *
  * ---
  * #### Properties
  * @prop {pointer}  ptr    Pointer to the `SQLite` database connection
@@ -25,16 +25,16 @@
  */
 class SQLite extends SQLite3
 {
-	
+
 	/** @prop {pointer} ptr - Pointer to the `SQLite` database connection */
 	ptr := 0
-	
+
 	/** @prop {string} path - Path to the `SQLite` database file */
 	path := ''
-	
+
 	/** @prop {string} error - Last error message */
 	error := ''
-	
+
 	/** @prop {integer} status - Last status code */
 	status {
 		get => this._status
@@ -79,11 +79,11 @@ class SQLite extends SQLite3
 	 *
 	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
-	 * 
+	 *
 	 * There are some special database that can be created:
 	 * - `:memory:` - an in-memory database that only exists for the duration of the session
 	 * - `""`        - an empty string creates a temporary, anonymous disk file
-	 * 
+	 *
 	 * Both are used by specifying them as the filename parameter.
 	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
@@ -116,7 +116,7 @@ class SQLite extends SQLite3
 	 * - `SQLITE_OPEN_EXRESCODE`
 	 * - `SQLITE_OPEN_MASTER_JOURNAL`
 	 */
-	static Open(filename, flags?) => SQLite(filename, flags?)
+	static Open(filename?, flags?) => SQLite(filename?, flags?)
 
 	/**
 	 * @description Opens a connection to an `SQLite` database file.
@@ -150,11 +150,11 @@ class SQLite extends SQLite3
 	 *
 	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
-	 * 
+	 *
 	 * There are some special database that can be created:
 	 * - `""`        - an empty string creates a temporary, anonymous disk file
 	 * - `:memory:` - an in-memory database that only exists for the duration of the session
-	 * 
+	 *
 	 * Both are used by specifying them as the filename parameter.
 	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
@@ -187,9 +187,14 @@ class SQLite extends SQLite3
 	 * - `SQLITE_OPEN_EXRESCODE`
 	 * - `SQLITE_OPEN_MASTER_JOURNAL`
 	 */
-	__New(filename, flags?)
+	__New(filename?, flags?)
 	{
-		flags := flags ?? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+		; creates a temporary file database
+		filename := filename ?? ''
+
+		; opens or creates a database with read/write access
+		flags    := flags ?? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+
 		this.status := SQLite3.open_v2(filename, &pDB, flags)
 
 		if (this.status != SQLITE_OK)
