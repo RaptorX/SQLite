@@ -700,6 +700,15 @@ class SQLite3
 
 		__New(db, statement, pTable, nRows, nCols)
 		{
+			params := [
+				{name: 'db', type: 'SQLite', value: db},
+				{name: 'statement', type: 'String', value: statement},
+				{name: 'pTable', type: 'Integer', value: pTable},
+				{name: 'nRows', type: 'Integer', value: nRows},
+				{name: 'nCols', type: 'Integer', value: nCols}
+			]
+			SQLite3.check_params(params)
+
 			RegExMatch(statement, 'im)from\s+(?<name>.*?)(\s|$)', &matched)
 			this.parent := db
 			this.count := nRows
@@ -734,6 +743,12 @@ class SQLite3
 		{
 			get
 			{
+				params := [
+					{name: 'row', type: 'Integer', value: row},
+					!IsSet(header) ? '' : {name: 'header', type: 'String', value: header}
+				]
+				SQLite3.check_params(params)
+
 				if IsSet(header)
 					return this.rows[row].%header%
 				else
