@@ -206,6 +206,13 @@ class SQLite3
 	 *
 	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
+	 * 
+	 * There are some special database that can be created:
+	 * - `""`        - an empty string creates a temporary, anonymous disk file
+	 * - `:memory:` - an in-memory database that only exists for the duration of the session
+	 * 
+	 * Both are used by specifying them as the filename parameter.
+	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
 	 * ---
 	 * #### Accepted Flags

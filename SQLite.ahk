@@ -73,12 +73,19 @@ class SQLite extends SQLite3
 	 *
 	 * ---
 	 * #### Notes
-	 * A database connection handle is usually returned in `this.ptr`, even if an error occurs.
-	 * The only exception is that if `SQLite` is unable to allocate memory to hold the `SQLite` object,
-	 * a `NULL` will be written into `this.ptr` instead of a pointer to the `SQLite` object.
+	 * A database connection handle is usually returned in `&pSqlite`, even if an error occurs.
+	 * The only exception is that if `sqlite3` is unable to allocate memory to hold the `sqlite3` object,
+	 * a `NULL` will be written into `&pSqlite` instead of a pointer to the `sqlite3` object.
 	 *
-	 * If the database is opened (and/or created) successfully, then a `SQLite` object is returned.
+	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
+	 * 
+	 * There are some special database that can be created:
+	 * - `:memory:` - an in-memory database that only exists for the duration of the session
+	 * - `""`        - an empty string creates a temporary, anonymous disk file
+	 * 
+	 * Both are used by specifying them as the filename parameter.
+	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
 	 * ---
 	 * #### Accepted Flags
@@ -137,12 +144,19 @@ class SQLite extends SQLite3
 	 *
 	 * ---
 	 * #### Notes
-	 * A database connection handle is usually returned in `this.ptr`, even if an error occurs.
-	 * The only exception is that if `SQLite` is unable to allocate memory to hold the `SQLite` object,
-	 * a `NULL` will be written into `this.ptr` instead of a pointer to the `SQLite` object.
+	 * A database connection handle is usually returned in `&pSqlite`, even if an error occurs.
+	 * The only exception is that if `sqlite3` is unable to allocate memory to hold the `sqlite3` object,
+	 * a `NULL` will be written into `&pSqlite` instead of a pointer to the `sqlite3` object.
 	 *
-	 * If the database is opened (and/or created) successfully, then a `SQLite` object is returned.
+	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
+	 * 
+	 * There are some special database that can be created:
+	 * - `""`        - an empty string creates a temporary, anonymous disk file
+	 * - `:memory:` - an in-memory database that only exists for the duration of the session
+	 * 
+	 * Both are used by specifying them as the filename parameter.
+	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
 	 * ---
 	 * #### Accepted Flags
