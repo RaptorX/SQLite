@@ -583,7 +583,7 @@ class SQLite3
 	 *
 	 * ---
 	 * #### Parameters
-	 * @param {pointer}  strPtr  The pointer to the memory block
+	 * @param {pointer} strPtr  The pointer to the memory block
 	 *
 	 * ---
 	 * #### Error Handling
@@ -677,18 +677,20 @@ class SQLite3
 		static valueErrorTemplate := 'Expected a {1} for {2} but received a {3}'
 
 		if (t:=Type(params)) != 'Array'
-			throw ValueError(Format(SQLite3.valueErrorTemplate, 'Array', t), A_ThisFunc, 'params')
+			throw ValueError(Format(valueErrorTemplate, 'Array', t), A_ThisFunc, 'params')
 
 		for param in params
 		{
-			if (t:=Type(param.value)) != param.type
-			{
-				errmsg := Format(SQLite3.valueErrorTemplate, param.type, param.name, t)
-				throw ValueError(errmsg, A_ThisFunc, param.name)
-			}
+			; we might set a blank string in the array to indicate
+			; ignoring a particular parameter. e.g. the parameter was not set.
+			if param is String
+			|| (t:=Type(param.value)) == param.type
+				continue
+
+			errmsg := Format(valueErrorTemplate, param.type, param.name, t)
+			throw ValueError(errmsg, A_ThisFunc, param.name)
 		}
 	}
-
 	class Table
 	{
 		parent  := 0
