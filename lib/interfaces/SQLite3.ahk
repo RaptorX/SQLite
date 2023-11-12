@@ -1,12 +1,56 @@
-﻿#Requires AutoHotkey v2.0+ ; prefer 64-Bit
+#Requires AutoHotkey v2.0+ ; prefer 64-Bit
 
 #Include .\..\headers\sqlite3.h.ahk
 
+/**
+ * @description This class provides an interface for working with `SQLite3` databases.
+ * - [Documentation](https://www.sqlite.org/docs.html).
+ *
+ * ---
+ * #### Properties
+ * @static @prop {string}  {@link SQLite3.bin SQLite3.bin}         - name of the DLL by bitness
+ * @static @prop {string}  {@link SQLite3.dllPath SQLite3.dllPath} - path to the `SQLite3` DLL
+ * @static @prop {Map}     {@link SQLite3.ptrs SQLite3.ptrs}       - map of pointers to `SQLite3` functions
+ * @static @prop {pointer} {@link SQLite3.hModule SQLite3.hModule} - handle to the loaded `SQLite3` module
+ *
+ * ---
+ * #### Methods
+ * @method {@link SQLite.sourceid          sourceid}          - returns the source ID
+ * @method {@link SQLite.libversion        libversion}        - returns the version
+ * @method {@link SQLite.libversion_number libversion_number} - returns the version number
+ * @method {@link SQLite.open_v2           open_v2}           - opens a connection
+ * @method {@link SQLite.close_v2          close_v2}          - closes a connection
+ * @method {@link SQLite.exec              exec}              - executes a SQL statement
+ * @method {@link SQLite.get_table         get_table}         - returns a table from a SQL query
+ * @method {@link SQLite.errstr            errstr}            - converts a result code to a string
+ * @method {@link SQLite.errmsg            errmsg}            - returns the last error message
+ * @method {@link SQLite.errcode           errcode}           - returns the last error code
+ * @method {@link SQLite.extended_errcode  extended_errcode}  - returns the last extended error code
+ * @method {@link SQLite.free              free}              - frees memory allocated by `SQLite3`
+ * @method {@link SQLite.free_table        free_table}        - frees memory allocated for a table
+ * @method {@link SQLite.check_params      check_params}      - checks the parameters of a function
+ *
+ * ----
+ * #### Child Classes
+ * @class Table - {@link SQLite3.Table SQLite3.Table}
+ *
+ * ---
+ * #### Notes
+ * - This class is a work in progress
+ * - This class copies the `SQLite3` DLL to the `lib\bin` folder if it does not exist and automatically loads the module
+ */
 class SQLite3
 {
+	/** @prop {string} bin Name of the DLL by bitness */
 	static bin     := 'sqlite3' A_PtrSize * 8 '.dll'
+
+	/** @prop {string} dllPath Path to the `SQLite3` DLL */
 	static dllPath := A_IsCompiled ? A_ScriptDir '\lib\bin' : A_LineFile '\..\..\bin'
+
+	/** @prop {Map} ptrs Map of pointers to `SQLite3` functions */
 	static ptrs    := Map()
+
+	/** @prop {pointer} hModule - Handle to the loaded `SQLite3` module */
 	static hModule := 0
 
 	static __New()
@@ -27,8 +71,103 @@ class SQLite3
 			throw OSError(A_LastError, A_ThisFunc, 'LoadLibrary')
 	}
 
+	/**
+	 * @description Returns the source ID of the `SQLite3` library
+	 * - [Documentation](https://www.sqlite.org/c3ref/c_source_id.html)
+	 *
+	 * ---
+	 * #### Method Info
+	 * @static
+	 * @method sourceid
+	 * @memberof SQLite3
+	 *
+	 * ---
+	 * #### Parameters
+	 * `NONE`
+	 *
+	 * ----
+	 * #### Returns
+	 * @returns {string} returns the source ID of the `SQLite3` library
+	 *
+	 * ---
+	 * #### Notes
+	 * These method provides the same information as `SQLITE_SOURCE_ID` C preprocessor macro
+	 * but is associated with the library instead of the header file. Cautious programmers might include
+	 * `assert()` statements in their application to verify that values returned by these interfaces match the
+	 * macros in the header, and thus ensure that the application is compiled with matching library and
+	 * header files.
+	 *
+	 * #### Example
+	 * ```
+	 * assert( SQLite3.sourceid() == SQLITE_SOURCE_ID );
+	 * ```
+	 */
 	static sourceid() => StrGet(DllCall(SQLite3.bin '\sqlite3_sourceid', 'ptr'), 'utf-8')
+
+	/**
+	 * @description Returns the library version string of the `SQLite3` library
+	 * - [Documentation](https://www.sqlite.org/c3ref/c_source_id.html)
+	 *
+	 * ---
+	 * #### Method Info
+	 * @static
+	 * @method libversion
+	 * @memberof SQLite3
+	 *
+	 * ---
+	 * #### Parameters
+	 * `NONE`
+	 *
+	 * ----
+	 * #### Returns
+	 * @returns {string} returns the library version string of the `SQLite3` library
+	 *
+	 * ---
+	 * #### Notes
+	 * These method provides the same information as `SQLITE_VERSION` C preprocessor macro
+	 * but is associated with the library instead of the header file. Cautious programmers might include
+	 * `assert()` statements in their application to verify that values returned by these interfaces match the
+	 * macros in the header, and thus ensure that the application is compiled with matching library and
+	 * header files.
+	 *
+	 * #### Example
+	 * ```
+	 * assert( SQLite3.libversion() == SQLITE_VERSION );
+	 * ```
+	 */
 	static libversion() => StrGet(DllCall(SQLite3.bin '\sqlite3_libversion', 'ptr'), 'utf-8')
+
+	/**
+	 * @description Returns the version number of the `SQLite3` library
+	 * - [Documentation](https://www.sqlite.org/c3ref/c_source_id.html)
+	 *
+	 * ---
+	 * #### Method Info
+	 * @static
+	 * @method libversion_number
+	 * @memberof SQLite3
+	 *
+	 * ---
+	 * #### Parameters
+	 * `NONE`
+	 *
+	 * ----
+	 * #### Returns
+	 * @returns {integer} returns the version number of the `SQLite3` library
+	 *
+	 * ---
+	 * #### Notes
+	 * These method provides the same information as `SQLITE_VERSION_NUMBER` C preprocessor macro
+	 * but is associated with the library instead of the header file. Cautious programmers might include
+	 * `assert()` statements in their application to verify that values returned by these interfaces match the
+	 * macros in the header, and thus ensure that the application is compiled with matching library and
+	 * header files.
+	 *
+	 * #### Example
+	 * ```
+	 * assert( SQLite3.libversion_number() == SQLITE_VERSION_NUMBER );
+	 * ```
+	 */
 	static libversion_number() => DllCall(SQLite3.bin '\sqlite3_libversion_number', 'int')
 
 	/**

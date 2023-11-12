@@ -2,11 +2,40 @@
 
 #Include .\lib\interfaces\SQLite3.ahk
 
+/**
+ * @description Main interface for the `SQLite` AutoHotkey wrapper class. Represents a `SQLite` database connection.
+ * 
+ * ---
+ * @version v0.1.0
+ * @author  RaptorX
+ * @email   graptorx@gmail.com
+ * 
+ * ---
+ * #### Properties
+ * @prop {pointer}  ptr    Pointer to the `SQLite` database connection
+ * @prop {string}   path   Path to the `SQLite` database file
+ * @prop {string}   error  Last error message
+ * @prop {integer}  status Last status code
+ *
+ * ---
+ * #### Methods
+ * @method {@link SQLite.Open  Open}  Opens a connection to a `SQLite` database file
+ * @method {@link SQLite.Close Close} Closes the database connection
+ * @method {@link SQLite.Exec  Exec}  Executes SQL commands provided by an input string
+ */
 class SQLite extends SQLite3
 {
+	
+	/** @prop {pointer} ptr - Pointer to the `SQLite` database connection */
 	ptr := 0
+	
+	/** @prop {string} path - Path to the `SQLite` database file */
 	path := ''
+	
+	/** @prop {string} error - Last error message */
 	error := ''
+	
+	/** @prop {integer} status - Last status code */
 	status {
 		get => this._status
 		set {
@@ -19,7 +48,7 @@ class SQLite extends SQLite3
 	}
 
 	/**
-	 * @description Opens a connection to an SQLite database file.
+	 * @description Opens a connection to an `SQLite` database file.
 	 * - [Documentation](https://www.sqlite.org/c3ref/open.html)
 	 *
 	 * ---
@@ -31,24 +60,24 @@ class SQLite extends SQLite3
 	 * ---
 	 * #### Parameters
 	 * @param {string} filename The name of the database file to open.
-	 * @param {number} [flags=SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE] The flags to use when opening the database file.
+	 * @param {number} [flags]  The flags to use when opening the database file. (see below)
 	 *
 	 * ---
 	 * #### Error Handling
 	 * @throws {ValueError} if the wrong type is passed for any of the parameters.
-	 * @throws {OSError}    if unable to allocate memory for the `sqlite3` object.
+	 * @throws {OSError}    if unable to allocate memory for the `SQLite` object.
 	 *
 	 * ----
 	 * #### Returns
-	 * @returns {SQLite} A new SQLite object representing the opened database connection.
+	 * @returns {SQLite} A new `SQLite` object representing the opened database connection.
 	 *
 	 * ---
 	 * #### Notes
-	 * A database connection handle is usually returned in `&pSqlite`, even if an error occurs.
-	 * The only exception is that if `sqlite3` is unable to allocate memory to hold the `sqlite3` object,
-	 * a `NULL` will be written into `&pSqlite` instead of a pointer to the `sqlite3` object.
+	 * A database connection handle is usually returned in `this.ptr`, even if an error occurs.
+	 * The only exception is that if `SQLite` is unable to allocate memory to hold the `SQLite` object,
+	 * a `NULL` will be written into `this.ptr` instead of a pointer to the `SQLite` object.
 	 *
-	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
+	 * If the database is opened (and/or created) successfully, then a `SQLite` object is returned.
 	 * Otherwise an error code is returned.
 	 *
 	 * ---
@@ -83,7 +112,7 @@ class SQLite extends SQLite3
 	static Open(filename, flags?) => SQLite(filename, flags?)
 
 	/**
-	 * @description Opens a connection to an SQLite database file.
+	 * @description Opens a connection to an `SQLite` database file.
 	 * - [Documentation](https://www.sqlite.org/c3ref/open.html)
 	 *
 	 * ---
@@ -95,24 +124,24 @@ class SQLite extends SQLite3
 	 * ---
 	 * #### Parameters
 	 * @param {string} filename The name of the database file to open.
-	 * @param {number} [flags=SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE] The flags to use when opening the database file.
+	 * @param {number} [flags]  The flags to use when opening the database file. (see below)
 	 *
 	 * ---
 	 * #### Error Handling
-	 * @throws {ValueError} if the wrong type is passed for any of the parameters.
-	 * @throws {OSError}    if unable to allocate memory for the `sqlite3` object.
+	 * @throws {ValueError} If the wrong type is passed for any of the parameters.
+	 * @throws {OSError}    If unable to allocate memory for the `SQLite` object.
 	 *
 	 * ----
 	 * #### Returns
-	 * @returns {SQLite} A new SQLite object representing the opened database connection.
+	 * @returns {SQLite} A new `SQLite` object representing the opened database connection.
 	 *
 	 * ---
 	 * #### Notes
-	 * A database connection handle is usually returned in `&pSqlite`, even if an error occurs.
-	 * The only exception is that if `sqlite3` is unable to allocate memory to hold the `sqlite3` object,
-	 * a `NULL` will be written into `&pSqlite` instead of a pointer to the `sqlite3` object.
+	 * A database connection handle is usually returned in `this.ptr`, even if an error occurs.
+	 * The only exception is that if `SQLite` is unable to allocate memory to hold the `SQLite` object,
+	 * a `NULL` will be written into `this.ptr` instead of a pointer to the `SQLite` object.
 	 *
-	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
+	 * If the database is opened (and/or created) successfully, then a `SQLite` object is returned.
 	 * Otherwise an error code is returned.
 	 *
 	 * ---
@@ -171,16 +200,16 @@ class SQLite extends SQLite3
 	 *
 	 * ---
 	 * #### Error Handling
-	 * @throws {ValueError} if the wrong type is passed for the parameter.
+	 * @throws {ValueError} If the wrong type is passed for the parameter.
 	 *
 	 * ----
 	 * #### Returns
-	 * @returns {integer} SQLITE_OK if the database connection was closed successfully.
+	 * @returns {integer} `SQLITE_OK`.
 	 *
 	 * ---
 	 * #### Notes
 	 * If this method is called with unfinalized prepared statements, unclosed `BLOB` handlers, and/or unfinished
-	 * `sqlite3_backups`, it returns `SQLITE_OK` regardless, but instead of deallocating the database connection
+	 * backups, it returns `SQLITE_OK` **regardless**, but instead of deallocating the database connection
 	 * immediately, it marks the database connection as an unusable "zombie" and makes arrangements
 	 * to automatically deallocate the database connection after all prepared statements are finalized,
 	 * all `BLOB` handles are closed, and all backups have finished.
@@ -205,15 +234,15 @@ class SQLite extends SQLite3
 	 *
 	 * ---
 	 * #### Parameters
-	 * @param {string}  statement the SQL statement to be executed
+	 * @param {string} statement The SQL statement to be executed
 	 *
 	 * ---
 	 * #### Error Handling
-	 * @throws {ValueError} if the wrong type is passed
+	 * @throws {ValueError} If the wrong type is passed
 	 *
 	 * ----
 	 * #### Returns
-	 * @returns {integer|SQLite3.Table} `sqlite3` result code or a `SQLite3.Table` object
+	 * @returns {integer|SQLite3.Table} `sqlite` result code or a `SQLite3.Table` object
 	 *                                  if using a `SELECT` statement.
 	 *
 	 * ---
