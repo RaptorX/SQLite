@@ -1,4 +1,4 @@
-﻿#Requires Autohotkey v2.0+ ; prefer 64-Bit
+#Requires Autohotkey v2.0+ ; prefer 64-Bit
 #Include <v2\Yunit\Yunit>
 #Include <v2\Yunit\Window>
 
@@ -153,7 +153,7 @@ class tSqlite3Interface
 			SQLite3.close_v2(pDB)
 		}
 	}
-	Class t2InvalidInput
+	class t2InvalidInput
 	{
 		test1_open_v2_invalid_flags()
 		{

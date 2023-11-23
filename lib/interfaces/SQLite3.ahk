@@ -799,7 +799,7 @@ class SQLite3
 					if Mod(A_Index, nCols)
 						continue
 
-					this.rows.Push(SQLite.Table.Row(++row, this.headers, fields))
+					this.rows.Push(SQLite3.Table.Row(++row, this.headers, fields))
 					fields := []
 				}
 			}
