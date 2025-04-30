@@ -277,7 +277,7 @@ class SQLite extends SQLite3
 		{
 			res := SQLite3.get_table(this.ptr, statement, &pTable, &rows, &cols, &errMsg)
 
-			if res != SQLITE_OK || errMsg
+			if errMsg || res != SQLITE_OK
 			{
 				this.status := res
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
@@ -289,7 +289,7 @@ class SQLite extends SQLite3
 		{
 			res := SQLite3.exec(this.ptr, statement, &errMsg)
 
-			if res != SQLITE_OK || errMsg
+			if errMsg || res != SQLITE_OK
 			{
 				this.status := res
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
