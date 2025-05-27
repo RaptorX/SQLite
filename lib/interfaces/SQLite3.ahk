@@ -719,23 +719,23 @@ class SQLite3
 	 * #### Child Classes
 	 * @class Row - Represents a row in an `SQLite3.Table`.
 	 */
-	class Table
+	class Table extends Array
 	{
 
-		/** @prop {string} name The name of the SQLite table */
+		/** @prop {string}  name    The name of the SQLite table */
 		name    := ''
 
-		/** @prop {SQLite} parent The instance that owns the table */
+		/** @prop {SQLite}  parent  The instance that owns the table */
 		parent  := 0
 
-		/** @prop {integer} count The number of rows in the table */
+		/** @prop {integer} count   The number of rows in the table */
 		count   := 0
 
-		/** @prop {array} headers The column headers of the table */
+		/** @prop {array}   headers The column headers of the table */
 		headers := []
 
-		/** @prop {array} rows List of SQLite3.Table.Row objects */
-		rows    := []
+		/** @prop {array}   rows    List of SQLite3.Table.Row objects */
+		rows    := SQLite3.Table.Rows()
 
 		/**
 		 * @description Creates a new instance of a `SQLite3.Table`.
@@ -784,7 +784,7 @@ class SQLite3
 			this.name := matched['name']
 
 			row    := 0
-			fields := []
+			fields := Map()
 			OffSet := 0 - A_PtrSize
 			loop (nRows+1) * nCols
 			{
@@ -795,12 +795,13 @@ class SQLite3
 					this.headers.Push(data)
 				else
 				{
-					fields.Push(data)
-					if Mod(A_Index, nCols)
+					indx := Mod(A_Index, nCols)
+					fields.Set(this.headers[indx ? indx : 3], data)
+					if indx
 						continue
 
-					this.rows.Push(SQLite3.Table.Row(++row, this.headers, fields))
-					fields := []
+					this.rows.Push(SQLite3.Table.Row(++row, fields))
+					fields := Map()
 				}
 			}
 
@@ -819,12 +820,12 @@ class SQLite3
 				SQLite3.check_params(params)
 
 				if IsSet(header)
-					return this.rows[row].%header%
+					return this.rows[row][header]
 				else
 					return this.rows[row]
 			}
 			set => this.rows[row].%header% := value
-		}
+			}
 
 
 		/**
@@ -843,55 +844,35 @@ class SQLite3
 		 * @method __Get  Gets the value of a field in the row
 		 *
 		 */
-		class Row
+		/**
+		 * @description Represents a row in a `SQLite.Table`
+		 *
+		 * ---
+		 * #### Properties
+		 * @prop {integer} rowid The internal row ID. Not the same as the `rowid` column in SQLite.
+		 *
+		 * ---
+		 * #### Methods
+		 * @method __New Initializes a new instance of the Row class
+		 *
+		 */
+		class Row extends Map
 		{
+			rowid := 0
 
-			/** @prop {array} data The fields/cells in the row */
-			data     := []
-
-			/** @prop {integer} _number_ The row number */
-			_number_ := 0
-
-			/** @prop {integer} count Returns the number of fields/cells in the row */
-			count {
-				get => this.data.Length
-			}
-
-			__Enum(nVars)
+			__New(row, data)
 			{
-				return fields
-
-				fields(&hdr, &val)
-				{
-					static pos := 0
-					if pos = this.data.Length
-						return pos := false
-
-					field := this.data[pos += 1]
-					hdr := field.header
-
-					; always get the current value
-					val := this.%field.header%
-				}
-			}
-
-			__New(rNum, headers, data)
-			{
-				this._number_ := rNum
-				for header in headers
-					this.data.Push({header:header, value:data[A_Index]})
+				params := [{name: 'data', type: 'Map', value: data}]
+				SQLite3.check_params(params)
+				
+				this.rowid := row
+				for k, v in data
+					this[k] := v
 
 				return this
 			}
 
-			__Get(Key, Params)
-			{
-				for item in this.data
-					if item.header = Key
-						return item.value
-
-				return ''
-			}
+			__Get(Key, Params) => this.Has(key) ? this[Key] : ''
 		}
 	}
 }
