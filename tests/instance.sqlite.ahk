@@ -95,7 +95,7 @@ class tSqliteInterface
 			static statement :=
 			(Join;
 				'CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)
-				INSERT INTO test (name, value) VALUES ("test", 1.0),("test", 2.0),("test", 3.0)
+				INSERT INTO test (name, value) VALUES ("test1", 1.0),("test2", 2.0),("test3", 3.0)
 				SELECT * FROM test'
 			)
 
@@ -186,16 +186,16 @@ class tSqliteInterface
 		{
 			table := this.table
 
-			table[1, 'name']  := 'new name'
-			table[1, 'value'] := 99.99
+			table[1, 'name']   := 'new name'
+			table[1, 'value1'] := 99.99
 
 			Yunit.Assert(table[1, 'name'] = 'new name', 'table[1, "name"] is not "new name"')
-			Yunit.Assert(table[1, 'value'] = 99.99, 'table[1, "value"] is not 99.99')
+			Yunit.Assert(table[1, 'value1'] = 99.99, 'table[1, "value1"] is not 99.99')
 
 			row := table[1]
 
 			Yunit.Assert(row.name = 'new name', 'row.name is not "new name"')
-			Yunit.Assert(row.value = 99.99, 'row.value is not 99.99')
+			Yunit.Assert(row.value1 = 99.99, 'row.value1 is not 99.99')
 		}
 		test4_get_row_by_specifying_row_number()
 		{
@@ -204,7 +204,7 @@ class tSqliteInterface
 			row := table[1]
 
 			Yunit.Assert(row is SQLite3.Table.Row, 'row is not a SQLite3.Table.Row')
-			Yunit.Assert(row._number_ = 1, 'row._number_ is not 1')
+			Yunit.Assert(row.rowid = 1, 'row.rowid is not 1')
 		}
 		test5_table_information_can_be_looped_with_the_for_loop()
 		{
@@ -213,7 +213,7 @@ class tSqliteInterface
 			for row in table.rows
 			{
 				Yunit.Assert(row is SQLite3.Table.Row, 'row is not a SQLite3.Table.Row')
-				Yunit.Assert(row._number_ = A_Index, 'row._number_ is not ' A_Index)
+				Yunit.Assert(row.rowid = A_Index, 'row.rowid is not ' A_Index)
 			}
 		}
 	}
@@ -240,10 +240,7 @@ class tSqliteInterface
 			table := this.table
 			row := table[1]
 
-			properties := [
-				'_number_',
-				'data'
-			]
+			properties := ['rowid']
 
 			for property in properties
 				Yunit.Assert(row.HasOwnProp(property), property ' was not initialized')
@@ -267,9 +264,12 @@ class tSqliteInterface
 			table := this.table
 			row := table[1]
 
-			Yunit.Assert(row.id = 1          , 'row.id is not 1')
-			Yunit.Assert(row.name == 'value1', 'row.name is not "value1"')
-			Yunit.Assert(row.value = 1.0     , 'row.value is not 1.0')
+			Yunit.Assert(row.id = 1             , 'row.id is not 1')
+			Yunit.Assert(row.name == 'value1'   , 'row.name is not "value1"')
+			Yunit.Assert(row.value = 1.0        , 'row.value is not 1.0')
+			Yunit.Assert(row['id'] = 1          , 'row.id is not 1')
+			Yunit.Assert(row['name'] == 'value1', 'row.name is not "value1"')
+			Yunit.Assert(row['value'] = 1.0     , 'row.value is not 1.0')
 		}
 		test3_row_information_can_be_set_and_affects_table_data()
 		{
@@ -299,15 +299,15 @@ class tSqliteInterface
 			Yunit.Assert(row.name !== 'new name', 'row.name is "new name" but it shouldn`'t be')
 			Yunit.Assert(row.value != 99.99, 'row.value is 99.99 but it shouldn`'t be')
 		}
-		row_can_be_looped_with_a_for_loop()
+		test5_row_can_be_looped_with_a_for_loop()
 		{
 			table := this.table
 			row := table[1]
 
-			for header,value in row
+			for header, value in row
 			{
-				Yunit.Assert(header == row.data[A_Index].header, 'header is not row.data[' A_Index '].header')
-				Yunit.Assert(value == row.data[A_Index].value, 'value is not row.data[' A_Index '].value')
+				Yunit.Assert(header ==  table.headers[A_Index], 'header is not ' table.headers[A_Index])
+				Yunit.Assert(row[header] == value, 'value is not ' value)
 			}
 		}
 	}
