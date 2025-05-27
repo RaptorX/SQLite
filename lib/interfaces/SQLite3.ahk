@@ -206,11 +206,11 @@ class SQLite3
 	 *
 	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
-	 * 
+	 *
 	 * There are some special database that can be created:
 	 * - `""`        - an empty string creates a temporary, anonymous disk file
 	 * - `:memory:` - an in-memory database that only exists for the duration of the session
-	 * 
+	 *
 	 * Both are used by specifying them as the filename parameter.
 	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
@@ -836,21 +836,27 @@ class SQLite3
 		}
 
 		/**
-		 * @description Represents a row in a `SQLite.Table`
+		 * @description Represents a group of rows in a `SQLite.Table`
 		 *
 		 * ---
 		 * #### Properties
-		 * @prop {array}    data     The fields/cells in the row
-		 * @prop {integer}  _number_ The row number
-		 * @prop {integer}  count    Returns the number of fields/cells in the row
+		 * NONE
 		 *
 		 * ---
 		 * #### Methods
-		 * @method __Enum Enumerates the fields in the row
-		 * @method __New  Initializes a new instance of the Row class
-		 * @method __Get  Gets the value of a field in the row
+		 * @method Push Inserts a new row into the array of rows
 		 *
 		 */
+		class Rows extends Array
+		{
+			Push(data) {
+				params := [{name: 'data', type: 'SQLite3.Table.Row', value: data}]
+				SQLite3.check_params(params)
+				super.Push(data)
+				return this
+			}
+		}
+
 		/**
 		 * @description Represents a row in a `SQLite.Table`
 		 *
@@ -875,7 +881,7 @@ class SQLite3
 				this.rowid := row
 				for k, v in data
 					this[k] := v
-
+				
 				return this
 			}
 
