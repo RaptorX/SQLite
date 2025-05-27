@@ -824,9 +824,16 @@ class SQLite3
 				else
 					return this.rows[row]
 			}
-			set => this.rows[row].%header% := value
+			set {
+				params := [
+					{name: 'row', type: 'Integer', value: row},
+					{name: 'header', type: 'String', value: header}
+				]
+				SQLite3.check_params(params)
+				
+				return this.rows[row][header] := value
 			}
-
+		}
 
 		/**
 		 * @description Represents a row in a `SQLite.Table`
