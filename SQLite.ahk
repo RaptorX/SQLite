@@ -23,8 +23,7 @@
  * @method {@link SQLite.Close Close} Closes the database connection
  * @method {@link SQLite.Exec  Exec}  Executes SQL commands provided by an input string
  */
-class SQLite extends SQLite3
-{
+class SQLite extends SQLite3 {
 
 	/** @prop {pointer} ptr - Pointer to the `SQLite` database connection */
 	ptr := 0
@@ -187,13 +186,12 @@ class SQLite extends SQLite3
 	 * - `SQLITE_OPEN_EXRESCODE`
 	 * - `SQLITE_OPEN_MASTER_JOURNAL`
 	 */
-	__New(filename?, flags?)
-	{
+	__New(filename?, flags?) {
 		; creates a temporary file database
 		filename := filename ?? ''
 
 		; opens or creates a database with read/write access
-		flags    := flags ?? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+		flags := flags ?? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
 
 		this.status := SQLite3.open_v2(filename, &pDB, flags)
 
@@ -233,8 +231,7 @@ class SQLite extends SQLite3
 	 * to automatically deallocate the database connection after all prepared statements are finalized,
 	 * all `BLOB` handles are closed, and all backups have finished.
 	 */
-	Close()
-	{
+	Close() {
 		SQLite3.close_v2(this.ptr)
 		this.path := ''
 		this.ptr := 0
@@ -272,27 +269,22 @@ class SQLite extends SQLite3
 	 *
 	 * `this.status` is set to the appropriate error code and `this.error` is set to contain the error message.
 	 */
-	Exec(statement, args*)
-	{
+	Exec(statement, args*) {
 		fixed_statement := Format(statement, args*)
-		if fixed_statement ~= 'i)SELECT'
-		{
+		if fixed_statement ~= 'i)SELECT' {
 			res := SQLite3.get_table(this.ptr, fixed_statement, &pTable, &rows, &cols, &errMsg)
 
-			if errMsg || res != SQLITE_OK
-			{
+			if errMsg || res != SQLITE_OK {
 				this.status := res
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
 				SQLite3.free(errMsg)
 			}
 			return SQLite3.Table(this, fixed_statement, pTable, rows, cols)
 		}
-		else
-		{
+		else {
 			res := SQLite3.exec(this.ptr, fixed_statement, &errMsg)
 
-			if errMsg || res != SQLITE_OK
-			{
+			if errMsg || res != SQLITE_OK {
 				this.status := res
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
 				SQLite3.free(errMsg)
