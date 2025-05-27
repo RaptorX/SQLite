@@ -11,6 +11,20 @@ The SQLite file format is stable, cross-platform, and backwards compatible and t
 
 SQLite source code is in the public-domain and is free to everyone to use for any purpose.
 
+The code is separated in two sections.
+
+There is a Wrapper Interface that makes use of the back end interface.
+
+If you just need simple usage (can be used in 80-90% of simple SQL usage) just include the main interface:
+
+```ahk
+db := SQLite()
+```
+
+if you want full control you can use `lib\SQLite3.ahk` which is the back end or you can create your own interface based\
+on it to have better control. The one given is provided as a simple demo even though is already useful for much of\
+what you would normally need to do.
+
 ## The Wrapper Interface
 
 This is interface exposes the methods that can be used in your script.
@@ -29,7 +43,7 @@ The SQLite interface takes in 2 parameters:
 By default a blank database will be created if the specified file name doesnt exist. \
 You have full control of this behavior by specifying the flags like this though:
 
-```autoit
+```ahk
 db := SQLite('test.db', SQLITE_OPEN_READONLY)
 ```
 
@@ -43,31 +57,43 @@ If you dont specify any it defaults to `SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREA
 
 It returns a database connection instance which means you can have multiple connections at a time:
 
-```autoit
+```ahk
 db1 := SQLite('test1.db', SQLITE_OPEN_READONLY)
 db2 := SQLite('test2.db')
 
 ```
 
-### Advanced Examples
+### Other Examples
 
 You can use the `db := SQLite.Open(filename, flags)` syntax if you so prefer.
 
-```autoit
+```ahk
 flags := SQLITE_OPEN_READWRITE | SQLITE_OPEN_DELETEONCLOSE | SQLITE_OPEN_FULLMUTEX
-db3 := SQLite.Open('test3.db', flags)
+db3   := SQLite.Open('test3.db', flags)
 ```
 
 ## Executing statements
 
 For this you will use the `Exec` method and use any valid SQLite statements like so:
 
-```autoit
+```ahk
 db := SQLite() ; this creates a temporary file that will be deleted on close
 db.Exec('BEGIN TRANSACTION;')
 db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
 loop 20
-	db.Exec('INSERT INTO test VALUES(' A_Index ', "name' A_Index '", "value' A_Index '");')
+	db.Exec('INSERT INTO test VALUES(' A_Index ', "name' A_Index '", Float(A_Index));')
+db.Exec('COMMIT TRANSACTION;')
+table := db.Exec('SELECT * FROM test')
+msgbox table.count
+```
+
+You can also use placeholders for the `Format` command like in the following example:
+```ahk
+db := SQLite() ; this creates a temporary file that will be deleted on close
+db.Exec('BEGIN TRANSACTION;')
+db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
+loop 20
+	db.Exec('INSERT INTO test VALUES({1}, "name{1}", {2});', A_Index, Float(A_Index))
 db.Exec('COMMIT TRANSACTION;')
 table := db.Exec('SELECT * FROM test')
 msgbox table.count
@@ -89,19 +115,19 @@ You can get data out of a table in many ways. The most important properties are:
 
 - count - how many rows of data you got
 - headers - an array of the current headers
-- rows - an array of rows
+- rows - an array of rows (specifically SQLite3.Table.Rows)
 
 After a `SELECT` query you might want to check the count before doing anything else.
 Continuing the example above you can do the following:
 
-```autoit
+```ahk
 if table.count
 	msgbox table.count ' rows found'
 ```
 
 You can inspect the data by looping through it too.
 
-```autoit
+```ahk
 for row in table.rows
 	names .= row.name '`n' ; "name" is the column which we setup on the example above
 
@@ -122,58 +148,69 @@ msgbox data
 
 Sometimes you know exactly what you want and you dont need to loop. In that case you can use this syntax:
 
-```autoit
+```ahk
 msgbox table[2, 'value'] ; where the first parameter is the row number and the second is the column name
 ```
 
 If at any point you need to know the current header/column names, you can just loop over the `Table.headers` array
 to get the sorted header/column names.
 
-```autoit
+```ahk
 for header in table.headers
 	msgbox header
 ```
 
 You can get a whole row by doing this as well:
 
-```autoit
+```ahk
 row := table[5] ; gets the 5th row as an object
 ```
 
 ### Working with rows
 
-Rows are special because they contain not only the values/fields of a row but also the header/column information
-which makes them very useful on their own.
+You can skip having to capture a row object if you just need a quick value such as:
+```ahk
+msgbox table[1]['name'] ; go straight to the row and column you need
+msgbox table[1, 'name'] ; this the equivalent of the above
+```
 
-```autoit
+Rows are special because they contain the values/fields of a row as a map object that you can parse by looping\
+through it or capture the data using item or property syntax.
+
+```ahk
 row := table[5] ; gets the 5th row as an object
 
 msgbox row.name ; access the value stored on the name column of this particular row
+msgbox row['name'] ; is also valid, you can use whatever you prefer
+
+for header, value in row
+	data .= header ': ' value '`n'
 ```
 
-If you want to know the row number (in the order that SQLite returned it) you can use the special property `_number_`
 
-```autoit
-msgbox row._number_ ; returns 5 in this example
+If you want to know the row number (in the order that SQLite returned it) you can use the special property `rowid`
+
+```ahk
+msgbox row.rowid ; returns 5 in this example
 ```
 
 ### Manipulating data
 
 You can modify your copy of the data in memory by updating the values in your rows like this:
 
-```autoit
+```ahk
 row.name := 'new name' ; modifies the value on the 'name' column on row 5
 ```
 
 ### Warning
 
-Be careful with this manipulation though. When you get a row using the `Table[n]` command you get a reference to that
+Be careful with this manipulation though. When you get a row using the `Table[n]` command you get a reference to that\
 row.
 
-That means that your variable is `linked` to the table object. This is a very interesting concept because you can do
+That means that your variable is `linked` to the table object. This is a very interesting concept because you can do\
 something like this:
 
-```autoit
+```ahk
 row := table[5]
 
 msgbox table[5, 'name'] ; returns 'name5'
@@ -186,7 +223,7 @@ msgbox table[5, 'name'] ; returns 'new name'!
 This might be surprising at first but it is pretty handy when you later want to update your actual database information.
 If you **DONT** want this behavior make sure you clone the row instead of just assigning it.
 
-```autoit
+```ahk
 row := table[5].Clone() ; creates a shallow copy of the object. In other words not linked.
 
 msgbox table[5, 'name'] ; returns 'name5'
@@ -198,7 +235,7 @@ msgbox table[5, 'name'] ; returns 'name5' still!
 
 You can update information inside the table without creating a variable too.
 
-```autoit
+```ahk
 table[5, 'name'] := 'new name' ; this is valid too
 ```
 
@@ -209,7 +246,7 @@ to loop over your table object and create SQL syntax to update your actual datab
 
 You can close the database using the `Close` method or by simply clearing the variable.
 
-```autoit
+```ahk
 db.Close()
 
 ; or
