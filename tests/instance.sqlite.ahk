@@ -153,17 +153,17 @@ class tSqliteInterface
 				Yunit.Assert(table.HasOwnProp(property), property ' was not initialized')
 
 			tests := Map(
-				table is SQLite3.table  , 'table is not a SQLite3.table',
-				table.parent == db      , 'table.parent is not db',
-				table.name != ''        , 'table.name is empty',
-				table.headers is Array  , 'table.headers is not an Array',
-				table.headers.Length = 3, 'table.headers.Length is not 3',
-				table.count = 3         , 'table.count is not 3',
-				table.rows is Array     , 'table.rows is not an Array',
-				table.rows.Length = 3   , 'table.rows.Length is not 3',
+				'table is not a SQLite3.table' , table is SQLite3.table,
+				'table.parent is not db'       , table.parent == db,
+				'table.name is empty'          , table.name != '',
+				'table.headers is not an Array', table.headers is Array,
+				'table.headers.Length is not 3', table.headers.Length = 3,
+				'table.count is not 3'         , table.count = 3,
+				'table.rows SQLite3.Table.Row' , table.rows is SQLite3.Table.Rows,
+				'table.rows.Count is not 3'    , table.rows.Length = 3,
 			)
 
-			for test, error in tests
+			for error, test in tests
 				Yunit.Assert(test, error)
 		}
 		test2_table_information_can_be_accessed_without_looping()
@@ -249,16 +249,17 @@ class tSqliteInterface
 				Yunit.Assert(row.HasOwnProp(property), property ' was not initialized')
 
 			tests := Map(
-				row is SQLite3.Table.Row     , 'row is not a SQLite3.Table.Row',
-				row._number_ = 1             , 'row._number_ is not 1',
-				row.count = 3                , 'row.count is not 3',
-				row.data.length = 3          , 'row.data.length is not 3',
-				row.data[1].header == 'id'   , 'row.data[1].header is not "id"',
-				row.data[2].header == 'name' , 'row.data[2].header is not "name"',
-				row.data[3].header == 'value', 'row.data[3].header is not "value"',
+				'row is not a SQLite3.Table.Row'    , row is SQLite3.Table.Row,
+				'row.rowid is not 1'                , row.rowid = 1,
+				'row doesnt have the header "id"'   , row.Has('id'),
+				'row doesnt have the header "name"' , row.Has('name'),
+				'row doesnt have the header "value"', row.Has('value'),
+				'row "id" is not 1'                 , row['id'] == 1,
+				'row "name" is not "value1"'        , row['name'] == 'value1',
+				'row "value" is not 1.0'            , row['value'] == 1.0,
 			)
 
-			for test, error in tests
+			for error, test in tests
 				Yunit.Assert(test, error)
 		}
 		test2_row_information_can_be_accessed_without_looping()
