@@ -6,19 +6,17 @@
 
 #Include .\..\SQLite.ahk
 
-Yunit.Use(YunitWindow).Test(tSqliteInterface)
+Yunit.Use(YunitWindow)
+	.Test(tSqliteInterface)
 
-class tSqliteInterface
-{
-	begin()
-	{
+class tSqliteInterface {
+	begin() {
 		this.flags := SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY
 		this.db := SQLite('test.db', this.flags)
 	}
 	end() => SQLite3.close_v2(this.db.ptr)
 
-	test1_class_is_setup_correctly()
-	{
+	test1_class_is_setup_correctly() {
 		db := this.db
 		props := Map(
 			'ptr',   'Integer',
@@ -26,14 +24,12 @@ class tSqliteInterface
 			'error', 'String'
 		)
 
-		for prop,prop_type in props
-		{
+		for prop, prop_type in props {
 			Yunit.Assert(db.HasOwnProp(prop), prop ' was not initialized')
 			Yunit.Assert(Type(db.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
 		}
 	}
-	test2_database_is_opened_correctly()
-	{
+	test2_database_is_opened_correctly() {
 		db := this.db
 		Yunit.Assert(db.status == SQLITE_OK, 'status is not OK: ' db.error)
 		Yunit.Assert(db.ptr != 0, 'ptr is 0')
@@ -46,8 +42,7 @@ class tSqliteInterface
 		Yunit.Assert(db.error == '', db.error)
 		Yunit.Assert(db.path == 'test.db', 'path is not test.db')
 	}
-	test3_database_is_closed_correctly()
-	{
+	test3_database_is_closed_correctly() {
 		db := this.db
 		db.Close()
 		Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
@@ -55,16 +50,14 @@ class tSqliteInterface
 		Yunit.Assert(db.error == '', db.error)
 		Yunit.Assert(db.path == '', 'path is not empty')
 	}
-	test4_database_is_closed_when_object_is_destroyed()
-	{
+	test4_database_is_closed_when_object_is_destroyed() {
 		db := this.db
 		Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
 		Yunit.Assert(db.ptr != 0, 'ptr is 0')
 		Yunit.Assert(db.error == '', db.error)
 		Yunit.Assert(db.path == 'test.db', 'path is not test.db')
 		db := ''
-		try
-		{
+		try {
 			var := db.ptr
 			Yunit.Assert(false, 'an error should be thrown')
 		}
@@ -72,17 +65,14 @@ class tSqliteInterface
 			Yunit.Assert(true)
 	}
 
-	class ExecutingStatements
-	{
-		begin()
-		{
+	class ExecutingStatements {
+		begin() {
 			this.flags := SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY
 			this.db := SQLite('test.db', this.flags)
 		}
 		end() => SQLite3.close_v2(this.db.ptr)
 
-		test1_create_a_new_database()
-		{
+		test1_create_a_new_database() {
 			db := this.db
 			db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
 			Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
@@ -90,12 +80,11 @@ class tSqliteInterface
 
 			db.Close()
 		}
-		test2_get_results_from_a_table()
-		{
+		test2_get_results_from_a_table() {
 			static statement :=
 			(Join;
 				'CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)
-				INSERT INTO test (name, value) VALUES ("test", 1.0),("test", 2.0),("test", 3.0)
+				INSERT INTO test (name, value) VALUES ("test1", 1.0),("test2", 2.0),("test3", 3.0)
 				SELECT * FROM test'
 			)
 
@@ -107,9 +96,7 @@ class tSqliteInterface
 
 			db.Close()
 		}
-
-		test3_inserting_many_rows_of_data_into_a_table()
-		{
+		test3_inserting_many_rows_of_data_into_a_table() {
 			db := SQLite() ; this creates a temporary file that will be deleted on close
 			db.Exec('BEGIN TRANSACTION;')
 			db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
@@ -119,12 +106,26 @@ class tSqliteInterface
 			table := db.Exec('SELECT * FROM test')
 			Yunit.Assert(table.count, 'table.count is not 20')
 		}
+		test4_using_placeholders_for_exec() {
+			db := SQLite()
+			db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
+			Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+			Yunit.Assert(db.error == '', db.error)
+
+			db.Exec('BEGIN TRANSACTION;')
+			loop 10 {
+				db.Exec('INSERT INTO test (name, value) VALUES ("{}", {})', 'test' A_Index, Float(A_Index))
+				Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+				Yunit.Assert(db.error == '', db.error)
+			}
+			db.Exec('COMMIT TRANSACTION;')
+			db.Close()
+		}
+
 	}
 
-	class TableTests
-	{
-		begin()
-		{
+	class TableTests {
+		begin() {
 			static statement :=
 			(Join;
 				'CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)
@@ -138,8 +139,7 @@ class tSqliteInterface
 		}
 		end() => SQLite3.close_v2(this.db.ptr)
 
-		test1_table_is_properly_setup()
-		{
+		test1_table_is_properly_setup() {
 			db := this.db
 			table := this.table
 			properties := [
@@ -153,27 +153,25 @@ class tSqliteInterface
 				Yunit.Assert(table.HasOwnProp(property), property ' was not initialized')
 
 			tests := Map(
-				table is SQLite3.table  , 'table is not a SQLite3.table',
-				table.parent == db      , 'table.parent is not db',
-				table.name != ''        , 'table.name is empty',
-				table.headers is Array  , 'table.headers is not an Array',
-				table.headers.Length = 3, 'table.headers.Length is not 3',
-				table.count = 3         , 'table.count is not 3',
-				table.rows is Array     , 'table.rows is not an Array',
-				table.rows.Length = 3   , 'table.rows.Length is not 3',
+				'table is not a SQLite3.table' , table is SQLite3.table,
+				'table.parent is not db'       , table.parent == db,
+				'table.name is empty'          , table.name != '',
+				'table.headers is not an Array', table.headers is Array,
+				'table.headers.Length is not 3', table.headers.Length = 3,
+				'table.count is not 3'         , table.count = 3,
+				'table.rows SQLite3.Table.Row' , table.rows is SQLite3.Table.Rows,
+				'table.rows.Count is not 3'    , table.rows.Length = 3,
 			)
 
-			for test, error in tests
+			for error, test in tests
 				Yunit.Assert(test, error)
 		}
-		test2_table_information_can_be_accessed_without_looping()
-		{
+		test2_table_information_can_be_accessed_without_looping() {
 			table := this.table
 
-			loop table.count
-			{
+			loop table.count {
 				Yunit.Assert(
-					table[A_Index, 'name'] = 'value' A_Index ,
+					table[A_Index, 'name'] = 'value' A_Index,
 					'table[' A_Index ', "name"] is not "value' A_Index '"'
 				)
 				Yunit.Assert(
@@ -182,46 +180,40 @@ class tSqliteInterface
 				)
 			}
 		}
-		test3_table_information_can_be_set_without_looping()
-		{
+		test3_table_information_can_be_set_without_looping() {
 			table := this.table
 
-			table[1, 'name']  := 'new name'
-			table[1, 'value'] := 99.99
+			table[1, 'name'] := 'new name'
+			table[1, 'value1'] := 99.99
 
 			Yunit.Assert(table[1, 'name'] = 'new name', 'table[1, "name"] is not "new name"')
-			Yunit.Assert(table[1, 'value'] = 99.99, 'table[1, "value"] is not 99.99')
+			Yunit.Assert(table[1, 'value1'] = 99.99, 'table[1, "value1"] is not 99.99')
 
 			row := table[1]
 
 			Yunit.Assert(row.name = 'new name', 'row.name is not "new name"')
-			Yunit.Assert(row.value = 99.99, 'row.value is not 99.99')
+			Yunit.Assert(row.value1 = 99.99, 'row.value1 is not 99.99')
 		}
-		test4_get_row_by_specifying_row_number()
-		{
+		test4_get_row_by_specifying_row_number() {
 			table := this.table
 
 			row := table[1]
 
 			Yunit.Assert(row is SQLite3.Table.Row, 'row is not a SQLite3.Table.Row')
-			Yunit.Assert(row._number_ = 1, 'row._number_ is not 1')
+			Yunit.Assert(row.rowid = 1, 'row.rowid is not 1')
 		}
-		test5_table_information_can_be_looped_with_the_for_loop()
-		{
+		test5_table_information_can_be_looped_with_the_for_loop() {
 			table := this.table
 
-			for row in table.rows
-			{
+			for row in table.rows {
 				Yunit.Assert(row is SQLite3.Table.Row, 'row is not a SQLite3.Table.Row')
-				Yunit.Assert(row._number_ = A_Index, 'row._number_ is not ' A_Index)
+				Yunit.Assert(row.rowid = A_Index, 'row.rowid is not ' A_Index)
 			}
 		}
 	}
 
-	class RowTests
-	{
-		begin()
-		{
+	class RowTests {
+		begin() {
 			static statement :=
 			(Join;
 				'CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)
@@ -235,43 +227,41 @@ class tSqliteInterface
 		}
 		end() => SQLite3.close_v2(this.db.ptr)
 
-		test1_row_is_properly_setup()
-		{
+		test1_row_is_properly_setup() {
 			table := this.table
 			row := table[1]
 
-			properties := [
-				'_number_',
-				'data'
-			]
+			properties := ['rowid']
 
 			for property in properties
 				Yunit.Assert(row.HasOwnProp(property), property ' was not initialized')
 
 			tests := Map(
-				row is SQLite3.Table.Row     , 'row is not a SQLite3.Table.Row',
-				row._number_ = 1             , 'row._number_ is not 1',
-				row.count = 3                , 'row.count is not 3',
-				row.data.length = 3          , 'row.data.length is not 3',
-				row.data[1].header == 'id'   , 'row.data[1].header is not "id"',
-				row.data[2].header == 'name' , 'row.data[2].header is not "name"',
-				row.data[3].header == 'value', 'row.data[3].header is not "value"',
+				'row is not a SQLite3.Table.Row'    , row is SQLite3.Table.Row,
+				'row.rowid is not 1'                , row.rowid = 1,
+				'row doesnt have the header "id"'   , row.Has('id'),
+				'row doesnt have the header "name"' , row.Has('name'),
+				'row doesnt have the header "value"', row.Has('value'),
+				'row "id" is not 1'                 , row['id'] == 1,
+				'row "name" is not "value1"'        , row['name'] == 'value1',
+				'row "value" is not 1.0'            , row['value'] == 1.0,
 			)
 
-			for test, error in tests
+			for error, test in tests
 				Yunit.Assert(test, error)
 		}
-		test2_row_information_can_be_accessed_without_looping()
-		{
+		test2_row_information_can_be_accessed_without_looping() {
 			table := this.table
 			row := table[1]
 
-			Yunit.Assert(row.id = 1          , 'row.id is not 1')
-			Yunit.Assert(row.name == 'value1', 'row.name is not "value1"')
-			Yunit.Assert(row.value = 1.0     , 'row.value is not 1.0')
+			Yunit.Assert(row.id = 1             , 'row.id is not 1')
+			Yunit.Assert(row.name == 'value1'   , 'row.name is not "value1"')
+			Yunit.Assert(row.value = 1.0        , 'row.value is not 1.0')
+			Yunit.Assert(row['id'] = 1          , 'row.id is not 1')
+			Yunit.Assert(row['name'] == 'value1', 'row.name is not "value1"')
+			Yunit.Assert(row['value'] = 1.0     , 'row.value is not 1.0')
 		}
-		test3_row_information_can_be_set_and_affects_table_data()
-		{
+		test3_row_information_can_be_set_and_affects_table_data() {
 			table := this.table
 			row := table[1]
 
@@ -284,8 +274,7 @@ class tSqliteInterface
 			Yunit.Assert(row.name == 'new name', 'row.name is not "new name"')
 			Yunit.Assert(row.value = 99.99, 'row.value is not 99.99')
 		}
-		test4_row_can_be_cloned_and_modified_without_affecting_table_data()
-		{
+		test4_row_can_be_cloned_and_modified_without_affecting_table_data() {
 			table := this.table
 			row := table[1].Clone()
 
@@ -298,15 +287,13 @@ class tSqliteInterface
 			Yunit.Assert(row.name !== 'new name', 'row.name is "new name" but it shouldn`'t be')
 			Yunit.Assert(row.value != 99.99, 'row.value is 99.99 but it shouldn`'t be')
 		}
-		row_can_be_looped_with_a_for_loop()
-		{
+		test5_row_can_be_looped_with_a_for_loop() {
 			table := this.table
 			row := table[1]
 
-			for header,value in row
-			{
-				Yunit.Assert(header == row.data[A_Index].header, 'header is not row.data[' A_Index '].header')
-				Yunit.Assert(value == row.data[A_Index].value, 'value is not row.data[' A_Index '].value')
+			for header, value in row {
+				Yunit.Assert(header == table.headers[A_Index], 'header is not ' table.headers[A_Index])
+				Yunit.Assert(row[header] == value, 'value is not ' value)
 			}
 		}
 	}

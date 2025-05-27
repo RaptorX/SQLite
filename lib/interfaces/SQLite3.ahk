@@ -7,10 +7,13 @@
  * - [Documentation](https://www.sqlite.org/docs.html).
  *
  * ---
+ * @version v0.2.0
+ * 
+ * --- 
  * #### Properties
- * @static @prop {string}  {@link SQLite3.bin SQLite3.bin}         - name of the DLL by bitness
+ * @static @prop {string}  {@link SQLite3.bin     SQLite3.bin}     - name of the DLL by bitness
  * @static @prop {string}  {@link SQLite3.dllPath SQLite3.dllPath} - path to the `SQLite3` DLL
- * @static @prop {Map}     {@link SQLite3.ptrs SQLite3.ptrs}       - map of pointers to `SQLite3` functions
+ * @static @prop {Map}     {@link SQLite3.ptrs    SQLite3.ptrs}    - map of pointers to `SQLite3` functions
  * @static @prop {pointer} {@link SQLite3.hModule SQLite3.hModule} - handle to the loaded `SQLite3` module
  *
  * ---
@@ -39,22 +42,20 @@
  * - This class is a work in progress
  * - This class copies the `SQLite3` DLL to the `lib\bin` folder if it does not exist and automatically loads the module
  */
-class SQLite3
-{
+class SQLite3 {
 	/** @prop {string} bin Name of the DLL by bitness */
-	static bin     := 'sqlite3' A_PtrSize * 8 '.dll'
+	static bin := 'sqlite3' A_PtrSize * 8 '.dll'
 
 	/** @prop {string} dllPath Path to the `SQLite3` DLL */
 	static dllPath := A_IsCompiled ? A_ScriptDir '\lib\bin' : A_LineFile '\..\..\bin'
 
 	/** @prop {Map} ptrs Map of pointers to `SQLite3` functions */
-	static ptrs    := Map()
+	static ptrs := Map()
 
 	/** @prop {pointer} hModule - Handle to the loaded `SQLite3` module */
 	static hModule := 0
 
-	static __New()
-	{
+	static __New() {
 		if SQLite3.hModule
 			return
 
@@ -206,11 +207,11 @@ class SQLite3
 	 *
 	 * If the database is opened (and/or created) successfully, then `SQLITE_OK` is returned.
 	 * Otherwise an error code is returned.
-	 * 
+	 *
 	 * There are some special database that can be created:
 	 * - `""`        - an empty string creates a temporary, anonymous disk file
 	 * - `:memory:` - an in-memory database that only exists for the duration of the session
-	 * 
+	 *
 	 * Both are used by specifying them as the filename parameter.
 	 * - [Documentation](https://www.sqlite.org/inmemorydb.html)
 	 *
@@ -243,8 +244,7 @@ class SQLite3
 	 * - `SQLITE_OPEN_EXRESCODE`
 	 * - `SQLITE_OPEN_MASTER_JOURNAL`
 	 */
-	static open_v2(filename, &pSqlite, flags?, zVfs?)
-	{
+	static open_v2(filename, &pSqlite, flags?, zVfs?) {
 		if IsSet(zVfs)
 			throw ValueError('VFS modules are not implemented yet', A_ThisFunc, 'zVfs')
 
@@ -306,9 +306,8 @@ class SQLite3
 	 * to automatically deallocate the database connection after all prepared statements are finalized,
 	 * all `BLOB` handles are closed, and all backups have finished.
 	 */
-	static close_v2(pSqlite)
-	{
-		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
+	static close_v2(pSqlite) {
+	SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
 		try SQLite3.ptrs.Delete(pSqlite)
 		return DllCall(SQLite3.bin '\sqlite3_close_v2', 'ptr', pSqlite)
 	}
@@ -350,8 +349,7 @@ class SQLite3
 	 *
 	 * You must ensure to use `StrGet(errmsg, 'utf-8')` to convert the error message to a string.
 	 */
-	static exec(pSqlite, statement, &errmsg, callback?, pArg?)
-	{
+	static exec(pSqlite, statement, &errmsg, callback?, pArg?) {
 		if IsSet(callback) || IsSet(pArg)
 			throw ValueError('Callbacks are not implemented yet', A_ThisFunc, 'callback|pArg')
 
@@ -413,8 +411,7 @@ class SQLite3
 	 * A result table might consist of one or more memory allocations. It is **not safe** to pass a result table
 	 * directly to `SQLite3.free`. A result table **should be** deallocated using `SQLite3.free_table`.
 	 */
-	static get_table(pSqlite, statement, &result, &nrow, &ncol, &errmsg)
-	{
+	static get_table(pSqlite, statement, &result, &nrow, &ncol, &errmsg) {
 		params := [
 			{name: 'pSqlite', type: 'Integer', value: pSqlite},
 			{name: 'statement', type: 'String', value: statement}
@@ -462,8 +459,7 @@ class SQLite3
 	 * This method is used to get a human-readable string that describes a specific `sqlite3` result code.
 	 * Memory to hold the error message string is managed internally and must not be freed by the application.
 	 */
-	static errstr(resCode)
-	{
+	static errstr(resCode) {
 		SQLite3.check_params([{name: 'resCode', type: 'Integer', value: resCode}])
 		return StrGet(DllCall(SQLite3.bin '\sqlite3_errstr', 'int', resCode, 'ptr'), 'utf-8')
 	}
@@ -496,8 +492,7 @@ class SQLite3
 	 * freeing the result. However, the error string might be overwritten or deallocated by subsequent calls to
 	 * other SQLite interface functions.
 	 */
-	static errmsg(pSqlite)
-	{
+	static errmsg(pSqlite) {
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
 		return StrGet(DllCall(SQLite3.bin '\sqlite3_errmsg', 'ptr', pSqlite, 'ptr'), 'utf-8')
 	}
@@ -533,8 +528,7 @@ class SQLite3
 	 * The values returned by `SQLite3.errcode` might change with each API call. Except, there are some interfaces
 	 * that are guaranteed to never change the value of the error code.
 	 */
-	static errcode(pSqlite)
-	{
+	static errcode(pSqlite) {
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
 		return DllCall(SQLite3.bin '\sqlite3_errcode', 'ptr', pSqlite, 'int')
 	}
@@ -571,8 +565,7 @@ class SQLite3
 	 * The values returned by `SQLite3.errcode` might change with each API call. Except, there are some interfaces
 	 * that are guaranteed to never change the value of the error code.
 	 */
-	static extended_errcode(pSqlite)
-	{
+	static extended_errcode(pSqlite) {
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
 		return DllCall(SQLite3.bin '\sqlite3_extended_errcode', 'ptr', pSqlite, 'int')
 	}
@@ -609,8 +602,7 @@ class SQLite3
 	 * Memory corruption, a segmentation fault, or other severe error might result if `SQLite3.free` is called
 	 * with a non-`NULL` pointer that was not obtained from a `sqlite3` memory allocation method.
 	 */
-	static free(strPtr)
-	{
+	static free(strPtr) {
 		SQLite3.check_params([{name: 'strPtr', type: 'Integer', value: strPtr}])
 		DllCall(SQLite3.bin '\sqlite3_free', 'ptr', strPtr)
 	}
@@ -646,8 +638,7 @@ class SQLite3
 	 * not try to call `SQLite3.free` directly. Only `SQLite3.free_table` is able to release the memory
 	 * properly and safely.
 	 */
-	static free_table(tablePtr)
-	{
+	static free_table(tablePtr) {
 		SQLite3.check_params([{name: 'tablePtr', type: 'Integer', value: tablePtr}])
 		DllCall(SQLite3.bin '\sqlite3_free_table', 'ptr', tablePtr)
 	}
@@ -679,19 +670,17 @@ class SQLite3
 	 * This method is used to check the types of the parameters passed to a function.
 	 * If the type of a parameter does not match the expected type, a `ValueError` is thrown.
 	 */
-	static check_params(params)
-	{
+	static check_params(params) {
 		static valueErrorTemplate := 'Expected a {1} for {2} but received a {3}'
 
-		if (t:=Type(params)) != 'Array'
+		if (t := Type(params)) != 'Array'
 			throw ValueError(Format(valueErrorTemplate, 'Array', t), A_ThisFunc, 'params')
 
-		for param in params
-		{
+		for param in params {
 			; we might set a blank string in the array to indicate
 			; ignoring a particular parameter. e.g. the parameter was not set.
 			if param is String
-			|| (t:=Type(param.value)) == param.type
+				|| (t := Type(param.value)) == param.type
 				continue
 
 			errmsg := Format(valueErrorTemplate, param.type, param.name, t)
@@ -719,23 +708,21 @@ class SQLite3
 	 * #### Child Classes
 	 * @class Row - Represents a row in an `SQLite3.Table`.
 	 */
-	class Table
-	{
+	class Table extends Array {
+		/** @prop {string}  name    The name of the SQLite table */
+		name := ''
 
-		/** @prop {string} name The name of the SQLite table */
-		name    := ''
+		/** @prop {SQLite}  parent  The instance that owns the table */
+		parent := 0
 
-		/** @prop {SQLite} parent The instance that owns the table */
-		parent  := 0
+		/** @prop {integer} count   The number of rows in the table */
+		count := 0
 
-		/** @prop {integer} count The number of rows in the table */
-		count   := 0
-
-		/** @prop {array} headers The column headers of the table */
+		/** @prop {array}   headers The column headers of the table */
 		headers := []
 
-		/** @prop {array} rows List of SQLite3.Table.Row objects */
-		rows    := []
+		/** @prop {array}   rows    List of SQLite3.Table.Row objects */
+		rows := SQLite3.Table.Rows()
 
 		/**
 		 * @description Creates a new instance of a `SQLite3.Table`.
@@ -767,8 +754,7 @@ class SQLite3
 		 * - The `headers` property of the instance is an array of column names.
 		 * - The `rows` property of the instance is an array of row objects.
 		 */
-		__New(db, statement, pTable, nRows, nCols)
-		{
+		__New(db, statement, pTable, nRows, nCols) {
 			params := [
 				{name: 'db', type: 'SQLite', value: db},
 				{name: 'statement', type: 'String', value: statement},
@@ -783,24 +769,23 @@ class SQLite3
 			this.count := nRows
 			this.name := matched['name']
 
-			row    := 0
-			fields := []
+			row := 0
+			fields := Map()
 			OffSet := 0 - A_PtrSize
-			loop (nRows+1) * nCols
-			{
-				nxtPtr:=NumGet(pTable, OffSet += A_PtrSize, 'ptr')
+			loop (nRows + 1) * nCols {
+				nxtPtr := NumGet(pTable, OffSet += A_PtrSize, 'ptr')
 				data := nxtPtr ? StrGet(nxtPtr, 'UTF-8') : '' ; We need to handle NULL data
 
 				if A_Index <= nCols
 					this.headers.Push(data)
-				else
-				{
-					fields.Push(data)
-					if Mod(A_Index, nCols)
+				else {
+					indx := Mod(A_Index, nCols)
+					fields.Set(this.headers[indx ? indx : 3], data)
+					if indx
 						continue
 
-					this.rows.Push(SQLite.Table.Row(++row, this.headers, fields))
-					fields := []
+					this.rows.Push(SQLite3.Table.Row(++row, fields))
+					fields := Map()
 				}
 			}
 
@@ -808,10 +793,8 @@ class SQLite3
 			return this
 		}
 
-		__Item[row, header?]
-		{
-			get
-			{
+		__Item[row, header?] {
+			get {
 				params := [
 					{name: 'row', type: 'Integer', value: row},
 					!IsSet(header) ? '' : {name: 'header', type: 'String', value: header}
@@ -819,79 +802,69 @@ class SQLite3
 				SQLite3.check_params(params)
 
 				if IsSet(header)
-					return this.rows[row].%header%
+					return this.rows[row][header]
 				else
 					return this.rows[row]
 			}
-			set => this.rows[row].%header% := value
+			set {
+				params := [
+					{name: 'row', type: 'Integer', value: row},
+					{name: 'header', type: 'String', value: header}
+				]
+				SQLite3.check_params(params)
+
+				return this.rows[row][header] := value
+			}
 		}
 
+		/**
+		 * @description Represents a group of rows in a `SQLite.Table`
+		 *
+		 * ---
+		 * #### Properties
+		 * NONE
+		 *
+		 * ---
+		 * #### Methods
+		 * @method Push Inserts a new row into the array of rows
+		 *
+		 */
+		class Rows extends Array {
+			Push(data) {
+				params := [{name: 'data', type: 'SQLite3.Table.Row', value: data}]
+				SQLite3.check_params(params)
+				super.Push(data)
+				return this
+			}
+		}
 
 		/**
 		 * @description Represents a row in a `SQLite.Table`
 		 *
 		 * ---
 		 * #### Properties
-		 * @prop {array}    data     The fields/cells in the row
-		 * @prop {integer}  _number_ The row number
-		 * @prop {integer}  count    Returns the number of fields/cells in the row
+		 * @prop {integer} rowid The internal row ID. Not the same as the `rowid` column in SQLite.
 		 *
 		 * ---
 		 * #### Methods
-		 * @method __Enum Enumerates the fields in the row
-		 * @method __New  Initializes a new instance of the Row class
-		 * @method __Get  Gets the value of a field in the row
+		 * @method __New Initializes a new instance of the Row class
 		 *
 		 */
-		class Row
-		{
+		class Row extends Map {
+			rowid := 0
 
-			/** @prop {array} data The fields/cells in the row */
-			data     := []
+			__New(row, data) {
+				params := [{name: 'data', type: 'Map', value: data}]
+				SQLite3.check_params(params)
 
-			/** @prop {integer} _number_ The row number */
-			_number_ := 0
-
-			/** @prop {integer} count Returns the number of fields/cells in the row */
-			count {
-				get => this.data.Length
-			}
-
-			__Enum(nVars)
-			{
-				return fields
-
-				fields(&hdr, &val)
-				{
-					static pos := 0
-					if pos = this.data.Length
-						return pos := false
-
-					field := this.data[pos += 1]
-					hdr := field.header
-
-					; always get the current value
-					val := this.%field.header%
-				}
-			}
-
-			__New(rNum, headers, data)
-			{
-				this._number_ := rNum
-				for header in headers
-					this.data.Push({header:header, value:data[A_Index]})
+				this.rowid := row
+				for k, v in data
+					this[k] := v
 
 				return this
 			}
 
-			__Get(Key, Params)
-			{
-				for item in this.data
-					if item.header = Key
-						return item.value
-
-				return ''
-			}
+			__Get(Key, Params) => this.Has(key) ? this[Key] : ''
 		}
 	}
 }

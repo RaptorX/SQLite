@@ -1,41 +1,36 @@
-﻿#Requires Autohotkey v2.0+ ; prefer 64-Bit
+#Requires Autohotkey v2.0+ ; prefer 64-Bit
 #Include <v2\Yunit\Yunit>
 #Include <v2\Yunit\Window>
 
 #Include .\..\lib\interfaces\SQLite3.ahk
 
-Yunit.Use(YunitWindow).Test(tSqlite3Interface)
+Yunit.Use(YunitWindow)
+	.Test(tSqlite3Interface)
 
-class tSqlite3Interface
-{
+class tSqlite3Interface {
 	static flags := SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE | SQLITE_OPEN_MEMORY
 
 	t1check_module_is_loaded_automatically() => Yunit.Assert(SQLite3.hModule, 'module was not loaded')
-	t2check_properties_are_setup()
-	{
+	t2check_properties_are_setup() {
 		props := Map(
 			'hModule', 'Integer',
-			'bin',     'String',
+			'bin', 'String',
 			'dllPath', 'String',
-			'ptrs',    'Map'
+			'ptrs', 'Map'
 		)
 
-		for prop,prop_type in props
-		{
+		for prop, prop_type in props {
 			Yunit.Assert(SQLite3.HasOwnProp(prop), prop ' was not initialized')
-			Yunit.Assert( Type(SQLite3.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
+			Yunit.Assert(Type(SQLite3.%prop%) == prop_type, prop ' has unexpected type ' prop_type)
 		}
 	}
-	t3version_strings()
-	{
+	t3version_strings() {
 		Yunit.Assert(SQLite3.sourceid() == SQLITE_SOURCE_ID, 'source ids dont match')
 		Yunit.Assert(SQLite3.libversion() == SQLITE_VERSION, 'version strings dont match')
 		Yunit.Assert(SQLite3.libversion_number() = SQLITE_VERSION_NUMBER, 'version numbers dont match')
 	}
-	class t1ValidInput
-	{
-		test1_open_v2()
-		{
+	class t1ValidInput {
+		test1_open_v2() {
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
@@ -43,8 +38,7 @@ class tSqlite3Interface
 			Yunit.Assert(pDB != false, 'the database pointer was not set')
 			SQLite3.close_v2(pDB)
 		}
-		test2_close_v2()
-		{
+		test2_close_v2() {
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
@@ -56,8 +50,7 @@ class tSqlite3Interface
 			; code 21 which is 'bad parameter or other API misuse'
 			Yunit.Assert(SQLite3.errcode(pDB) = SQLITE_MISUSE, 'the expected error code was not returned')
 		}
-		test3_errstr()
-		{
+		test3_errstr() {
 			str := SQLite3.errstr(SQLITE_OK)
 			Yunit.Assert(
 				str == "not an error",
@@ -69,8 +62,7 @@ class tSqlite3Interface
 				'errstr should return "bad parameter or other API misuse" with resCode SQLITE_MISUSE'
 			)
 		}
-		test4_errmsg()
-		{
+		test4_errmsg() {
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
@@ -82,8 +74,7 @@ class tSqlite3Interface
 			res := SQLite3.errmsg(pDB) = 'bad parameter or other API misuse'
 			Yunit.Assert(res, 'the expected error code was not returned')
 		}
-		test5_errcode()
-		{
+		test5_errcode() {
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
@@ -95,8 +86,7 @@ class tSqlite3Interface
 			res := SQLite3.errcode(pDB)
 			Yunit.Assert(res = SQLITE_MISUSE, 'the expected error code was not returned')
 		}
-		test6_extended_errcode()
-		{
+		test6_extended_errcode() {
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
@@ -108,8 +98,7 @@ class tSqlite3Interface
 			res := SQLite3.extended_errcode(pDB)
 			Yunit.Assert(res = SQLITE_MISUSE, 'the expected error code was not returned')
 		}
-		test7_exec()
-		{
+		test7_exec() {
 			static statement := "CREATE TABLE test (id INTEGER PRIMARY KEY, name TEXT);"
 
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
@@ -122,8 +111,7 @@ class tSqlite3Interface
 			Yunit.Assert(res = SQLITE_OK, errmsg)
 			SQLite3.close_v2(pDB)
 		}
-		test8_get_table()
-		{
+		test8_get_table() {
 
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
@@ -136,8 +124,7 @@ class tSqlite3Interface
 				{sql:'SELECT * FROM test;'                                    , err:'execute SQL query: '}
 			]
 
-			for statement in statements
-			{
+			for statement in statements {
 				if (statement.sql ~= "SELECT")
 					res := SQLite3.get_table(pDB, statement.sql, &result, &nrow, &ncol, &errmsg)
 				else
@@ -153,82 +140,67 @@ class tSqlite3Interface
 			SQLite3.close_v2(pDB)
 		}
 	}
-	Class t2InvalidInput
-	{
-		test1_open_v2_invalid_flags()
-		{
+	class t2InvalidInput {
+		test1_open_v2_invalid_flags() {
 			res := SQLite3.open_v2('test.db', &pDB, -1)
 			Yunit.Assert(res = SQLITE_MISUSE, "open_v2 should throw an exception with invalid flags")
 			SQLite3.close_v2(pDB)
 		}
-		test2_open_v2_zVfs_set()
-		{
-			try
-			{
+		test2_open_v2_zVfs_set() {
+			try {
 				res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags, 1)
 				Yunit.Assert(false, 'open_v2 should throw an exception when zVfs is set')
 			}
 			catch Error
 				Yunit.Assert(true)
 		}
-		test3_close_v2_invalid_pointer()
-		{
+		test3_close_v2_invalid_pointer() {
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 
 			; check that the database opened without issues
 			Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 
-			try
-			{
+			try {
 				SQLite3.close_v2('invalid pointer')
 				Yunit.Assert(false)
 			}
 			catch Error
 				Yunit.Assert(true)
 		}
-		test4_errstr_invalid_resCode()
-		{
+		test4_errstr_invalid_resCode() {
 
-			try
-			{
+			try {
 				res := SQLite3.errstr('invalid resCode')
 				Yunit.Assert(false, "errstr should throw an exception with an invalid resCode")
 			}
 			catch
 				Yunit.Assert(true)
 		}
-		test5_errmsg_invalid_pointer()
-		{
-			try
-			{
+		test5_errmsg_invalid_pointer() {
+			try {
 				result := SQLite3.errmsg('invalid')
 				Yunit.Assert(false, "errmsg should throw an exception with an invalid database pointer")
 			}
 			catch
 				Yunit.Assert(true)
 		}
-		test6_errcode_invalid_pointer()
-		{
-			try
-			{
+		test6_errcode_invalid_pointer() {
+			try {
 				result := SQLite3.errcode('invalid')
 				Yunit.Assert(false, "errcode should throw an exception with an invalid database pointer")
 			}
 			catch
 				Yunit.Assert(true)
 		}
-		test7_extended_errcode_invalid_pointer()
-		{
-			try
-			{
+		test7_extended_errcode_invalid_pointer() {
+			try {
 				result := SQLite3.extended_errcode('invalid')
 				Yunit.Assert(false, "extended_errcode should throw an exception with an invalid database pointer")
 			}
 			catch
 				Yunit.Assert(true)
 		}
-		test8_exec_invalid_statement()
-		{
+		test8_exec_invalid_statement() {
 			static statement := "INVALID SQL STATEMENT"
 
 			res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
@@ -241,10 +213,8 @@ class tSqlite3Interface
 			Yunit.Assert(res = SQLITE_ERROR, errmsg)
 			SQLite3.close_v2(pDB)
 		}
-		test_get_table_invalid_pointer()
-		{
-			try
-			{
+		test_get_table_invalid_pointer() {
+			try {
 				statement := "SELECT * FROM test;"
 				res := SQLite3.get_table('invalid', statement, &result, &nrow, &ncol, &errmsg)
 				Yunit.Assert(false, "get_table should throw an exception with an invalid pSqlite")
@@ -252,10 +222,8 @@ class tSqlite3Interface
 			catch
 				Yunit.Assert(true)
 		}
-		test_get_table_invalid_statement()
-		{
-			try
-			{
+		test_get_table_invalid_statement() {
+			try {
 				res := SQLite3.open_v2('test.db', &pDB, tSqlite3Interface.flags)
 				Yunit.Assert(res = SQLITE_OK, SQLite3.errmsg(pDB))
 

@@ -6,7 +6,7 @@
  * @description Main interface for the `SQLite` AutoHotkey wrapper class. Represents a `SQLite` database connection.
  *
  * ---
- * @version v0.1.0
+ * @version v0.2.0
  * @author  RaptorX
  * @email   graptorx@gmail.com
  *
@@ -23,8 +23,7 @@
  * @method {@link SQLite.Close Close} Closes the database connection
  * @method {@link SQLite.Exec  Exec}  Executes SQL commands provided by an input string
  */
-class SQLite extends SQLite3
-{
+class SQLite extends SQLite3 {
 
 	/** @prop {pointer} ptr - Pointer to the `SQLite` database connection */
 	ptr := 0
@@ -187,13 +186,12 @@ class SQLite extends SQLite3
 	 * - `SQLITE_OPEN_EXRESCODE`
 	 * - `SQLITE_OPEN_MASTER_JOURNAL`
 	 */
-	__New(filename?, flags?)
-	{
+	__New(filename?, flags?) {
 		; creates a temporary file database
 		filename := filename ?? ''
 
 		; opens or creates a database with read/write access
-		flags    := flags ?? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
+		flags := flags ?? SQLITE_OPEN_READWRITE | SQLITE_OPEN_CREATE
 
 		this.status := SQLite3.open_v2(filename, &pDB, flags)
 
@@ -233,8 +231,7 @@ class SQLite extends SQLite3
 	 * to automatically deallocate the database connection after all prepared statements are finalized,
 	 * all `BLOB` handles are closed, and all backups have finished.
 	 */
-	Close()
-	{
+	Close() {
 		SQLite3.close_v2(this.ptr)
 		this.path := ''
 		this.ptr := 0
@@ -254,6 +251,7 @@ class SQLite extends SQLite3
 	 * ---
 	 * #### Parameters
 	 * @param {string} statement The SQL statement to be executed
+	 * @param {string} args*     Optional arguments to be replaced in the SQL statement if placholders exist.
 	 *
 	 * ---
 	 * #### Error Handling
@@ -271,26 +269,22 @@ class SQLite extends SQLite3
 	 *
 	 * `this.status` is set to the appropriate error code and `this.error` is set to contain the error message.
 	 */
-	Exec(statement)
-	{
-		if statement ~= 'i)SELECT'
-		{
-			res := SQLite3.get_table(this.ptr, statement, &pTable, &rows, &cols, &errMsg)
+	Exec(statement, args*) {
+		fixed_statement := Format(statement, args*)
+		if fixed_statement ~= 'i)SELECT' {
+			res := SQLite3.get_table(this.ptr, fixed_statement, &pTable, &rows, &cols, &errMsg)
 
-			if res != SQLITE_OK || errMsg
-			{
+			if errMsg || res != SQLITE_OK {
 				this.status := res
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
 				SQLite3.free(errMsg)
 			}
-			return SQLite3.Table(this, statement, pTable, rows, cols)
+			return SQLite3.Table(this, fixed_statement, pTable, rows, cols)
 		}
-		else
-		{
-			res := SQLite3.exec(this.ptr, statement, &errMsg)
+		else {
+			res := SQLite3.exec(this.ptr, fixed_statement, &errMsg)
 
-			if res != SQLITE_OK || errMsg
-			{
+			if errMsg || res != SQLITE_OK {
 				this.status := res
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
 				SQLite3.free(errMsg)
