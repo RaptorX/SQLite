@@ -254,6 +254,7 @@ class SQLite extends SQLite3
 	 * ---
 	 * #### Parameters
 	 * @param {string} statement The SQL statement to be executed
+	 * @param {string} args*     Optional arguments to be replaced in the SQL statement if placholders exist.
 	 *
 	 * ---
 	 * #### Error Handling
@@ -271,11 +272,12 @@ class SQLite extends SQLite3
 	 *
 	 * `this.status` is set to the appropriate error code and `this.error` is set to contain the error message.
 	 */
-	Exec(statement)
+	Exec(statement, args*)
 	{
-		if statement ~= 'i)SELECT'
+		fixed_statement := Format(statement, args*)
+		if fixed_statement ~= 'i)SELECT'
 		{
-			res := SQLite3.get_table(this.ptr, statement, &pTable, &rows, &cols, &errMsg)
+			res := SQLite3.get_table(this.ptr, fixed_statement, &pTable, &rows, &cols, &errMsg)
 
 			if errMsg || res != SQLITE_OK
 			{
@@ -283,11 +285,11 @@ class SQLite extends SQLite3
 				this.error .= ': ' StrGet(errMsg, 'utf-8')
 				SQLite3.free(errMsg)
 			}
-			return SQLite3.Table(this, statement, pTable, rows, cols)
+			return SQLite3.Table(this, fixed_statement, pTable, rows, cols)
 		}
 		else
 		{
-			res := SQLite3.exec(this.ptr, statement, &errMsg)
+			res := SQLite3.exec(this.ptr, fixed_statement, &errMsg)
 
 			if errMsg || res != SQLITE_OK
 			{

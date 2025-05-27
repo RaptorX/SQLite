@@ -107,7 +107,6 @@ class tSqliteInterface
 
 			db.Close()
 		}
-
 		test3_inserting_many_rows_of_data_into_a_table()
 		{
 			db := SQLite() ; this creates a temporary file that will be deleted on close
@@ -119,6 +118,23 @@ class tSqliteInterface
 			table := db.Exec('SELECT * FROM test')
 			Yunit.Assert(table.count, 'table.count is not 20')
 		}
+		test4_using_placeholders_for_exec()
+		{
+			db := SQLite()
+			db.Exec('CREATE TABLE IF NOT EXISTS test (id INTEGER PRIMARY KEY, name TEXT, value REAL)')
+			Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+			Yunit.Assert(db.error == '', db.error)
+			
+			db.Exec('BEGIN TRANSACTION;')
+			loop 10 {
+				db.Exec('INSERT INTO test (name, value) VALUES ("{}", {})', 'test' A_Index, Float(A_Index))
+				Yunit.Assert(db.status = SQLITE_OK, 'status is not OK: ' db.error)
+				Yunit.Assert(db.error == '', db.error)
+			}
+			db.Exec('COMMIT TRANSACTION;')
+			db.Close()
+		}
+
 	}
 
 	class TableTests
