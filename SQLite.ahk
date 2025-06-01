@@ -291,12 +291,12 @@ class SQLite extends SQLite3 {
 			; Match EXPLAIN (optional), WITH-CTE (optional), then SELECT|PRAGMA
 			if RegExMatch(
 				sql,
-				"i)^(?:EXPLAIN\s+(?:QUERY\s+PLAN\s+)?)?(?:WITH(?:\s+RECURSIVE)?\s+\w+\s+AS\s*\([^)]*\)\s*)*(SELECT|PRAGMA)\b"
+				"i)(^|;)(?:EXPLAIN\s+(?:QUERY\s+PLAN\s+)?)?(?:WITH(?:\s+RECURSIVE)?\s+\w+\s+AS\s*\([^)]*\)\s*)*(SELECT|PRAGMA)\b"
 			)
 				return true
 
 			; RETURNING turns DML into a result-set generator (SQLite ≥ 3.35) :contentReference[oaicite:2]{index=2}
-			if RegExMatch(sql, "i)^(INSERT|UPDATE|DELETE)\b.*\bRETURNING\b")
+			if RegExMatch(sql, "i)(^|;)(INSERT|UPDATE|DELETE)\b.*\bRETURNING\b")
 				return true
 
 			return false
