@@ -772,7 +772,9 @@ class SQLite3 {
 			RegExMatch(statement, 'im)from\s+(?<name>.*?)(\s|$)', &matched)
 			this.parent := db
 			this.count := nRows
-			this.name := matched['name']
+			try this.name := matched['name']
+			catch
+				this.name := ''
 
 			row := 0
 			fields := Map()
