@@ -55,6 +55,8 @@ class SQLite3 {
 	/** @type {pointer} */
 	static hModule := 0
 
+	static __New() => SQLite3.Load()
+
 	static Load(path?) {
 		if SQLite3.hModule
 			return
