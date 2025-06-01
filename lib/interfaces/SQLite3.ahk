@@ -55,18 +55,23 @@ class SQLite3 {
 	/** @prop {pointer} hModule - Handle to the loaded `SQLite3` module */
 	static hModule := 0
 
-	static __New() {
+	static Load(path?) {
 		if SQLite3.hModule
 			return
+
+		SQLite3.dllPath := path ?? SQLite3.dllPath
+
+		SplitPath SQLite3.dllPath, &bin
+		SQLite3.bin := bin
 
 		if A_IsCompiled
 		&& !FileExist(SQLite3.dllPath '\' SQLite3.bin)
 		{
 			DirCreate SQLite3.dllPath
-			FileInstall A_LineFile '\..\..\bin\sqlite332.dll', SQLite3.dllPath, true
-			FileInstall A_LineFile '\..\..\bin\sqlite364.dll', SQLite3.dllPath, true
+			try FileInstall A_LineFile '\..\..\bin\sqlite332.dll', SQLite3.dllPath, true
+			try FileInstall A_LineFile '\..\..\bin\sqlite364.dll', SQLite3.dllPath, true
 		}
-		SQLite3.dllPath .= '\' SQLite3.bin
+		SQLite3.dllPath .= (SQLite3.dllPath ~= 'dll$' ? '' : '\' SQLite3.bin)
 
 		if !SQLite3.hModule := DllCall('LoadLibrary', 'str', SQLite3.dllPath, 'ptr')
 			throw OSError(A_LastError, A_ThisFunc, 'LoadLibrary')
