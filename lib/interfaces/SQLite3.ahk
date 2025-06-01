@@ -61,10 +61,16 @@ class SQLite3 {
 		if SQLite3.hModule
 			return
 
-		SQLite3.dllPath := path ?? SQLite3.dllPath
-
-		SplitPath SQLite3.dllPath, &bin
-		SQLite3.bin := bin
+		if IsSet(path) {
+			if !FileExist(path)
+				throw ValueError('SQLite3.dllPath does not exist', A_ThisFunc, 'path')
+			if !(path ~= 'dll$') 
+				throw ValueError('SQLite3.dllPath must be a DLL file', A_ThisFunc, 'path')
+			
+			SQLite3.dllPath := path
+			SplitPath SQLite3.dllPath, &bin
+			SQLite3.bin := bin
+		}
 
 		if A_IsCompiled
 		&& !FileExist(SQLite3.dllPath '\' SQLite3.bin)
@@ -884,7 +890,7 @@ class SQLite3 {
 
 			/** @type {Array} */
 			headers => this.parent.headers
-			
+
 			/** @type {Array} */
 			values {
 				get {
