@@ -25,16 +25,16 @@
  */
 class SQLite extends SQLite3 {
 
-	/** @prop {pointer} ptr - Pointer to the `SQLite` database connection */
+	/** @type {pointer} */
 	ptr := 0
 
-	/** @prop {string} path - Path to the `SQLite` database file */
+	/** @type {string} */
 	path := ''
 
-	/** @prop {string} error - Last error message */
+	/** @type {string} */
 	error := ''
 
-	/** @prop {integer} status - Last status code */
+	/** @type {integer} */
 	status {
 		get => this._status
 		set {
