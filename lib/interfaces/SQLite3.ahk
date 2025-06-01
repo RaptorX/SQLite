@@ -7,10 +7,13 @@
  * - [Documentation](https://www.sqlite.org/docs.html).
  *
  * ---
+ * @version v0.2.0
+ * 
+ * --- 
  * #### Properties
- * @static @prop {string}  {@link SQLite3.bin SQLite3.bin}         - name of the DLL by bitness
+ * @static @prop {string}  {@link SQLite3.bin     SQLite3.bin}     - name of the DLL by bitness
  * @static @prop {string}  {@link SQLite3.dllPath SQLite3.dllPath} - path to the `SQLite3` DLL
- * @static @prop {Map}     {@link SQLite3.ptrs SQLite3.ptrs}       - map of pointers to `SQLite3` functions
+ * @static @prop {Map}     {@link SQLite3.ptrs    SQLite3.ptrs}    - map of pointers to `SQLite3` functions
  * @static @prop {pointer} {@link SQLite3.hModule SQLite3.hModule} - handle to the loaded `SQLite3` module
  *
  * ---
