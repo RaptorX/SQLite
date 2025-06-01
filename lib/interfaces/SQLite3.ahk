@@ -787,7 +787,7 @@ class SQLite3 {
 					this.headers.Push(data)
 				else {
 					indx := Mod(A_Index, nCols)
-					fields.Set(this.headers[indx ? indx : 3], data)
+					fields.Set(this.headers[indx ? indx : nCols], data)
 					if indx
 						continue
 
