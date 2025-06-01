@@ -791,7 +791,7 @@ class SQLite3 {
 					if indx
 						continue
 
-					this.rows.Push(SQLite3.Table.Row(++row, fields))
+					this.rows.Push(SQLite3.Table.Row(this, ++row, fields))
 					fields := Map()
 				}
 			}
@@ -859,12 +859,15 @@ class SQLite3 {
 		 */
 		class Row extends Map {
 			rowid := 0
+			parent := unset
+			headers => this.parent.headers
 
-			__New(row, data) {
+			__New(parent, row, data) {
 				params := [{name: 'data', type: 'Map', value: data}]
 				SQLite3.check_params(params)
 
 				this.rowid := row
+				this.parent := parent
 				for k, v in data
 					this[k] := v
 
