@@ -81,6 +81,9 @@ class SQLite3 {
 		}
 		SQLite3.dllPath .= (SQLite3.dllPath ~= 'dll$' ? '' : '\' SQLite3.bin)
 
+		if !IsSet(path) && !FileExist(SQLite3.dllPath)
+			return ; allow for manual loading of the dll
+
 		if !SQLite3.hModule := DllCall('LoadLibrary', 'str', SQLite3.dllPath, 'ptr')
 			throw OSError(A_LastError, A_ThisFunc, 'LoadLibrary')
 	}
