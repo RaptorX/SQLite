@@ -861,6 +861,14 @@ class SQLite3 {
 			rowid := 0
 			parent := unset
 			headers => this.parent.headers
+			values {
+				get {
+					values := []
+					for header in this.parent.headers
+						values.Push(this[header])
+					return values
+				}
+			}
 
 			__New(parent, row, data) {
 				params := [{name: 'data', type: 'Map', value: data}]
