@@ -924,9 +924,15 @@ class SQLite3 {
 			 * @returns {SQLite3.Table.Row} A new instance of the Row class.
 			 *
 			 */
+			__New(parent, rowid, data) {
+				params := [
+					{name: 'parent', type: 'SQLite3.Table', value: parent},
+					{name: 'rowid', type: 'Integer', value: rowid},
+					{name: 'data', type: 'Map', value: data}
+				]
 				SQLite3.check_params(params)
 
-				this.rowid := row
+				this.rowid := rowid
 				this.parent := parent
 				for k, v in data
 					this[k] := v
