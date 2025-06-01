@@ -271,25 +271,51 @@ class SQLite extends SQLite3 {
 	 */
 	Exec(statement, args*) {
 		fixed_statement := Format(statement, args*)
-		if fixed_statement ~= 'i)SELECT' {
+
+		if isTable := CreatesTable(fixed_statement)
 			res := SQLite3.get_table(this.ptr, fixed_statement, &pTable, &rows, &cols, &errMsg)
-
-			if errMsg || res != SQLITE_OK {
-				this.status := res
-				this.error .= ': ' StrGet(errMsg, 'utf-8')
-				SQLite3.free(errMsg)
-			}
-			return SQLite3.Table(this, fixed_statement, pTable, rows, cols)
-		}
-		else {
+		else
 			res := SQLite3.exec(this.ptr, fixed_statement, &errMsg)
-
-			if errMsg || res != SQLITE_OK {
-				this.status := res
-				this.error .= ': ' StrGet(errMsg, 'utf-8')
-				SQLite3.free(errMsg)
-			}
-			return res
+		
+		if errMsg || res != SQLITE_OK {
+			this.status := res
+			this.error .= ": " StrGet(errMsg, "utf-8")
+			SQLite3.free(errMsg)
 		}
+
+		return !isTable ? res : SQLite3.Table(this, fixed_statement, pTable, rows, cols)
+
+		CreatesTable(sql) {
+			sql := Sanitise(sql)
+
+			; Match EXPLAIN (optional), WITH-CTE (optional), then SELECT|PRAGMA
+			if RegExMatch(
+				sql,
+				"i)^(?:EXPLAIN\s+(?:QUERY\s+PLAN\s+)?)?(?:WITH(?:\s+RECURSIVE)?\s+\w+\s+AS\s*\([^)]*\)\s*)*(SELECT|PRAGMA)\b"
+			)
+				return true
+
+			; RETURNING turns DML into a result-set generator (SQLite ≥ 3.35) :contentReference[oaicite:2]{index=2}
+			if RegExMatch(sql, "i)^(INSERT|UPDATE|DELETE)\b.*\bRETURNING\b")
+				return true
+
+			return false
+
+			Sanitise(sql) {
+				sql := Trim(sql)                           ; strip whitespace  :contentReference[oaicite:0]{index=0}
+				; yanked-from-PostgreSQL style: removes block- and line-comments
+				sql := RegExReplace(
+					sql,
+					"s)^(?:/\*.*?\*/\s*|--[^\n]*\R\s*)*"   ; leading comments, any amount
+				)
+
+				return RegExReplace(
+					sql,
+					"s)'(?:''|[^'])*'|`"(?:\`"\`"|[^`"])*`""
+				)  ; ^ multi-line so .* spans newlines
+			
+			}
+		}
+	}
 	}
 }
