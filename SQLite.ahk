@@ -6,7 +6,7 @@
  * @description Main interface for the `SQLite` AutoHotkey wrapper class. Represents a `SQLite` database connection.
  *
  * ---
- * @version v0.2.0
+ * @version 0.4.0
  * @author  RaptorX
  * @email   graptorx@gmail.com
  *
