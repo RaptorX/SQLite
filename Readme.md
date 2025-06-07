@@ -88,6 +88,7 @@ msgbox table.count
 ```
 
 You can also use placeholders for the `Format` command like in the following example:
+
 ```ahk
 db := SQLite() ; this creates a temporary file that will be deleted on close
 db.Exec('BEGIN TRANSACTION;')
@@ -169,6 +170,7 @@ row := table[5] ; gets the 5th row as an object
 ### Working with rows
 
 You can skip having to capture a row object if you just need a quick value such as:
+
 ```ahk
 msgbox table[1]['name'] ; go straight to the row and column you need
 msgbox table[1, 'name'] ; this the equivalent of the above
@@ -186,7 +188,6 @@ msgbox row['name'] ; is also valid, you can use whatever you prefer
 for header, value in row
 	data .= header ': ' value '`n'
 ```
-
 
 If you want to know the row number (in the order that SQLite returned it) you can use the special property `rowid`
 

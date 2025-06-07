@@ -7,9 +7,9 @@
  * - [Documentation](https://www.sqlite.org/docs.html).
  *
  * ---
- * @version v0.2.0
- * 
- * --- 
+ * @version 0.4.0
+ *
+ * ---
  * #### Properties
  * @static @prop {string}  {@link SQLite3.bin     SQLite3.bin}     - name of the DLL by bitness
  * @static @prop {string}  {@link SQLite3.dllPath SQLite3.dllPath} - path to the `SQLite3` DLL
@@ -43,30 +43,46 @@
  * - This class copies the `SQLite3` DLL to the `lib\bin` folder if it does not exist and automatically loads the module
  */
 class SQLite3 {
-	/** @prop {string} bin Name of the DLL by bitness */
+	/** @type {string} */
 	static bin := 'sqlite3' A_PtrSize * 8 '.dll'
 
-	/** @prop {string} dllPath Path to the `SQLite3` DLL */
+	/** @type {string} */
 	static dllPath := A_IsCompiled ? A_ScriptDir '\lib\bin' : A_LineFile '\..\..\bin'
 
-	/** @prop {Map} ptrs Map of pointers to `SQLite3` functions */
+	/** @type {Map} */
 	static ptrs := Map()
 
-	/** @prop {pointer} hModule - Handle to the loaded `SQLite3` module */
+	/** @type {pointer} */
 	static hModule := 0
 
-	static __New() {
+	static __New() => SQLite3.Load()
+
+	static Load(path?) {
 		if SQLite3.hModule
 			return
+
+		if IsSet(path) {
+			if !FileExist(path)
+				throw ValueError('SQLite3.dllPath does not exist', A_ThisFunc, 'path')
+			if !(path ~= 'dll$') 
+				throw ValueError('SQLite3.dllPath must be a DLL file', A_ThisFunc, 'path')
+			
+			SQLite3.dllPath := path
+			SplitPath SQLite3.dllPath, &bin
+			SQLite3.bin := bin
+		}
 
 		if A_IsCompiled
 		&& !FileExist(SQLite3.dllPath '\' SQLite3.bin)
 		{
 			DirCreate SQLite3.dllPath
-			FileInstall A_LineFile '\..\..\bin\sqlite332.dll', SQLite3.dllPath, true
-			FileInstall A_LineFile '\..\..\bin\sqlite364.dll', SQLite3.dllPath, true
+			try FileInstall A_LineFile '\..\..\bin\sqlite332.dll', SQLite3.dllPath, true
+			try FileInstall A_LineFile '\..\..\bin\sqlite364.dll', SQLite3.dllPath, true
 		}
-		SQLite3.dllPath .= '\' SQLite3.bin
+		SQLite3.dllPath .= (SQLite3.dllPath ~= 'dll$' ? '' : '\' SQLite3.bin)
+
+		if !IsSet(path) && !FileExist(SQLite3.dllPath)
+			return ; allow for manual loading of the dll
 
 		if !SQLite3.hModule := DllCall('LoadLibrary', 'str', SQLite3.dllPath, 'ptr')
 			throw OSError(A_LastError, A_ThisFunc, 'LoadLibrary')
@@ -709,19 +725,19 @@ class SQLite3 {
 	 * @class Row - Represents a row in an `SQLite3.Table`.
 	 */
 	class Table extends Array {
-		/** @prop {string}  name    The name of the SQLite table */
+		/** @type {string} */
 		name := ''
 
-		/** @prop {SQLite}  parent  The instance that owns the table */
+		/** @type {SQLite} */
 		parent := 0
 
-		/** @prop {integer} count   The number of rows in the table */
+		/** @type {integer} */
 		count := 0
 
-		/** @prop {array}   headers The column headers of the table */
+		/** @type {array} */
 		headers := []
 
-		/** @prop {array}   rows    List of SQLite3.Table.Row objects */
+		/** @type {array} */
 		rows := SQLite3.Table.Rows()
 
 		/**
@@ -767,7 +783,9 @@ class SQLite3 {
 			RegExMatch(statement, 'im)from\s+(?<name>.*?)(\s|$)', &matched)
 			this.parent := db
 			this.count := nRows
-			this.name := matched['name']
+			try this.name := matched['name']
+			catch
+				this.name := ''
 
 			row := 0
 			fields := Map()
@@ -780,11 +798,11 @@ class SQLite3 {
 					this.headers.Push(data)
 				else {
 					indx := Mod(A_Index, nCols)
-					fields.Set(this.headers[indx ? indx : 3], data)
+					fields.Set(this.headers[indx ? indx : nCols], data)
 					if indx
 						continue
 
-					this.rows.Push(SQLite3.Table.Row(++row, fields))
+					this.rows.Push(SQLite3.Table.Row(this, ++row, fields))
 					fields := Map()
 				}
 			}
@@ -830,6 +848,19 @@ class SQLite3 {
 		 *
 		 */
 		class Rows extends Array {
+			/**
+			 *
+			 * @param {SQLite3.Table.Row} data The row data to be inserted into the array.
+			 *
+			 * ---
+			 * #### Error Handling
+			 * @throws {ValueError} If any of the parameters are invalid.
+			 *
+			 * ---
+			 * #### Returns
+			 * @returns {SQLite3.Table.Rows}
+			 *
+			 */
 			Push(data) {
 				params := [{name: 'data', type: 'SQLite3.Table.Row', value: data}]
 				SQLite3.check_params(params)
@@ -843,7 +874,10 @@ class SQLite3 {
 		 *
 		 * ---
 		 * #### Properties
-		 * @prop {integer} rowid The internal row ID. Not the same as the `rowid` column in SQLite.
+		 * @prop {integer}       rowid   The internal row ID. Not the same as the `rowid` column in SQLite.
+		 * @prop {SQLite3.Table} parent  The parent table that owns this row.
+		 * @prop {array}         headers The headers of the parent table.
+		 * @prop {array}         values  The values of the row, in the order of the headers.
 		 *
 		 * ---
 		 * #### Methods
@@ -851,13 +885,58 @@ class SQLite3 {
 		 *
 		 */
 		class Row extends Map {
+			/** @type {Integer} */
 			rowid := 0
 
-			__New(row, data) {
-				params := [{name: 'data', type: 'Map', value: data}]
+			/** @type {SQLite3.Table} */
+			parent := unset
+
+			/** @type {Array} */
+			headers => this.parent.headers
+
+			/** @type {Array} */
+			values {
+				get {
+					values := []
+					for header in this.parent.headers
+						values.Push(this[header])
+					return values
+				}
+			}
+
+			/**
+			 * @description Initializes a new instance of the Row class
+			 *
+			 * ---
+			 * #### Method Info
+			 * @method __New
+			 * @memberof SQLite3.Table.Row
+			 *
+			 * ---
+			 * #### Parameters
+			 * @param {SQLite3.Table} parent - The parent table that owns this row.
+			 * @param {integer}       rowid  - The internal row ID. Not the same as the `rowid` column in SQLite.
+			 * @param {Map}           data   - A map of column names and their values for this row.
+			 *
+			 * ---
+			 * #### Error Handling
+			 * @throws {ValueError} If any of the parameters are invalid.
+			 *
+			 * ----
+			 * #### Returns
+			 * @returns {SQLite3.Table.Row} A new instance of the Row class.
+			 *
+			 */
+			__New(parent, rowid, data) {
+				params := [
+					{name: 'parent', type: 'SQLite3.Table', value: parent},
+					{name: 'rowid', type: 'Integer', value: rowid},
+					{name: 'data', type: 'Map', value: data}
+				]
 				SQLite3.check_params(params)
 
-				this.rowid := row
+				this.rowid := rowid
+				this.parent := parent
 				for k, v in data
 					this[k] := v
 
