@@ -7,7 +7,7 @@
  * - [Documentation](https://www.sqlite.org/docs.html).
  *
  * ---
- * @version 0.4.0
+ * @version 0.4.3
  *
  * ---
  * #### Properties
