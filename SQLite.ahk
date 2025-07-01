@@ -26,10 +26,10 @@
 class SQLite extends SQLite3 {
 
 	/** @type {pointer} */
-	ptr := 0
+	ptr   := 0
 
 	/** @type {string} */
-	path := ''
+	path  := ''
 
 	/** @type {string} */
 	error := ''
@@ -38,12 +38,9 @@ class SQLite extends SQLite3 {
 	status {
 		get => this._status
 		set {
-			if (value != SQLITE_OK)
-				this.error := SQLite3.errstr(value)
-
+			this.error := value ? SQLite3.errstr(value) : ''
 			return this._status := value
 		}
-
 	}
 
 	/**
@@ -270,16 +267,17 @@ class SQLite extends SQLite3 {
 	 * `this.status` is set to the appropriate error code and `this.error` is set to contain the error message.
 	 */
 	Exec(statement, args*) {
-		fixed_statement := Format(statement, args*)
+		this.status := SQLITE_OK
 
+		fixed_statement := Format(statement, args*)
 		if isTable := CreatesTable(fixed_statement)
 			res := SQLite3.get_table(this.ptr, fixed_statement, &pTable, &rows, &cols, &errMsg)
 		else
 			res := SQLite3.exec(this.ptr, fixed_statement, &errMsg)
-		
+
 		if errMsg || res != SQLITE_OK {
 			this.status := res
-			this.error .= ": " StrGet(errMsg, "utf-8")
+			this.error .= ': ' StrGet(errMsg, "utf-8")
 			SQLite3.free(errMsg)
 		}
 
@@ -302,7 +300,7 @@ class SQLite extends SQLite3 {
 			return false
 
 			Sanitise(sql) {
-				sql := Trim(sql)                           ; strip whitespace  :contentReference[oaicite:0]{index=0}
+				sql := Trim(sql) ; strip whitespace  :contentReference[oaicite:0]{index=0}
 				; yanked-from-PostgreSQL style: removes block- and line-comments
 				sql := RegExReplace(
 					sql,
@@ -313,7 +311,7 @@ class SQLite extends SQLite3 {
 					sql,
 					"s)'(?:''|[^'])*'|`"(?:\`"\`"|[^`"])*`""
 				)  ; ^ multi-line so .* spans newlines
-			
+
 			}
 		}
 	}
