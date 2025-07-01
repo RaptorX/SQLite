@@ -84,7 +84,7 @@ class SQLite3 {
 		if !IsSet(path) && !FileExist(SQLite3.dllPath)
 			return ; allow for manual loading of the dll
 
-		if !SQLite3.hModule := DllCall('LoadLibrary', 'str', SQLite3.dllPath, 'ptr')
+		if !SQLite3.hModule := DllCall('LoadLibrary', 'str', SQLite3.dllPath, 'cdecl ptr')
 			throw OSError(A_LastError, A_ThisFunc, 'LoadLibrary')
 	}
 
@@ -119,7 +119,7 @@ class SQLite3 {
 	 * assert( SQLite3.sourceid() == SQLITE_SOURCE_ID );
 	 * ```
 	 */
-	static sourceid() => StrGet(DllCall(SQLite3.bin '\sqlite3_sourceid', 'ptr'), 'utf-8')
+	static sourceid() => StrGet(DllCall(SQLite3.bin '\sqlite3_sourceid', 'cdecl ptr'), 'utf-8')
 
 	/**
 	 * @description Returns the library version string of the `SQLite3` library
@@ -152,7 +152,7 @@ class SQLite3 {
 	 * assert( SQLite3.libversion() == SQLITE_VERSION );
 	 * ```
 	 */
-	static libversion() => StrGet(DllCall(SQLite3.bin '\sqlite3_libversion', 'ptr'), 'utf-8')
+	static libversion() => StrGet(DllCall(SQLite3.bin '\sqlite3_libversion', 'cdecl ptr'), 'utf-8')
 
 	/**
 	 * @description Returns the version number of the `SQLite3` library
@@ -185,7 +185,7 @@ class SQLite3 {
 	 * assert( SQLite3.libversion_number() == SQLITE_VERSION_NUMBER );
 	 * ```
 	 */
-	static libversion_number() => DllCall(SQLite3.bin '\sqlite3_libversion_number', 'int')
+	static libversion_number() => DllCall(SQLite3.bin '\sqlite3_libversion_number', 'cdecl int')
 
 	/**
 	 * @description Opens a new database connection and saves the `sqlite3` object pointer in the
@@ -283,7 +283,7 @@ class SQLite3 {
 			'ptr*', &pSqlite:=0,  ; OUT: SQLite db handle
 			'int' , flags,        ; Flags
 			'ptr' , 0,            ; Name of VFS module to use NOT IMPLEMENTED
-			'int')
+			'cdecl int')
 
 		if !pSqlite
 			throw OSError('Unable to allocate memory for the SQLite Object', A_ThisFunc)
@@ -325,7 +325,7 @@ class SQLite3 {
 	static close_v2(pSqlite) {
 	SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
 		try SQLite3.ptrs.Delete(pSqlite)
-		return DllCall(SQLite3.bin '\sqlite3_close_v2', 'ptr', pSqlite)
+		return DllCall(SQLite3.bin '\sqlite3_close_v2', 'ptr', pSqlite, 'cdecl')
 	}
 
 	/**
@@ -384,7 +384,7 @@ class SQLite3 {
 			'ptr', 0,            ; Callback function        NOT IMPLEMENTED
 			'ptr', 0,            ; 1st argument to callback NOT IMPLEMENTED
 			'ptr*', &errmsg:=0, ; Error msg written here
-			'int')
+			'cdecl int')
 		return res
 	}
 
@@ -444,7 +444,7 @@ class SQLite3 {
 			'int*', &nrow:=0,   ; Number of result rows written here
 			'int*', &ncol:=0,   ; Number of result columns written here
 			'ptr*', &errMsg:=0, ; Error msg written here
-			'int')
+			'cdecl int')
 		return res
 	}
 
@@ -477,7 +477,7 @@ class SQLite3 {
 	 */
 	static errstr(resCode) {
 		SQLite3.check_params([{name: 'resCode', type: 'Integer', value: resCode}])
-		return StrGet(DllCall(SQLite3.bin '\sqlite3_errstr', 'int', resCode, 'ptr'), 'utf-8')
+		return StrGet(DllCall(SQLite3.bin '\sqlite3_errstr', 'int', resCode, 'cdecl ptr'), 'utf-8')
 	}
 
 	/**
@@ -510,7 +510,7 @@ class SQLite3 {
 	 */
 	static errmsg(pSqlite) {
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
-		return StrGet(DllCall(SQLite3.bin '\sqlite3_errmsg', 'ptr', pSqlite, 'ptr'), 'utf-8')
+		return StrGet(DllCall(SQLite3.bin '\sqlite3_errmsg', 'ptr', pSqlite, 'cdecl ptr'), 'utf-8')
 	}
 
 	/**
@@ -546,7 +546,7 @@ class SQLite3 {
 	 */
 	static errcode(pSqlite) {
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
-		return DllCall(SQLite3.bin '\sqlite3_errcode', 'ptr', pSqlite, 'int')
+		return DllCall(SQLite3.bin '\sqlite3_errcode', 'ptr', pSqlite, 'cdecl int')
 	}
 
 	/**
@@ -583,7 +583,7 @@ class SQLite3 {
 	 */
 	static extended_errcode(pSqlite) {
 		SQLite3.check_params([{name: 'pSqlite', type: 'Integer', value: pSqlite}])
-		return DllCall(SQLite3.bin '\sqlite3_extended_errcode', 'ptr', pSqlite, 'int')
+		return DllCall(SQLite3.bin '\sqlite3_extended_errcode', 'ptr', pSqlite, 'cdecl int')
 	}
 
 	; not tested
@@ -620,7 +620,7 @@ class SQLite3 {
 	 */
 	static free(strPtr) {
 		SQLite3.check_params([{name: 'strPtr', type: 'Integer', value: strPtr}])
-		DllCall(SQLite3.bin '\sqlite3_free', 'ptr', strPtr)
+		DllCall(SQLite3.bin '\sqlite3_free', 'ptr', strPtr, 'cdecl')
 	}
 
 	/**
@@ -656,7 +656,7 @@ class SQLite3 {
 	 */
 	static free_table(tablePtr) {
 		SQLite3.check_params([{name: 'tablePtr', type: 'Integer', value: tablePtr}])
-		DllCall(SQLite3.bin '\sqlite3_free_table', 'ptr', tablePtr)
+		DllCall(SQLite3.bin '\sqlite3_free_table', 'ptr', tablePtr, 'cdecl')
 	}
 
 	/**
