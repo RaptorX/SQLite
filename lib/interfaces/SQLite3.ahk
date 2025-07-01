@@ -44,13 +44,13 @@
  */
 class SQLite3 {
 	/** @type {string} */
-	static bin := 'sqlite3' A_PtrSize * 8 '.dll'
+	static bin     := 'sqlite3' A_PtrSize * 8 '.dll'
 
 	/** @type {string} */
 	static dllPath := A_IsCompiled ? A_ScriptDir '\lib\bin' : A_LineFile '\..\..\bin'
 
 	/** @type {Map} */
-	static ptrs := Map()
+	static ptrs    := Map()
 
 	/** @type {pointer} */
 	static hModule := 0

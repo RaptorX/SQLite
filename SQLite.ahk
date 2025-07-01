@@ -310,20 +310,17 @@ class SQLite extends SQLite3 {
 				return RegExReplace(
 					sql,
 					"s)'(?:''|[^'])*'|`"(?:\`"\`"|[^`"])*`""
-				)  ; ^ multi-line so .* spans newlines
+				)
 
 			}
 		}
 	}
-	static Escape(orig_str)
-	{
+	static Escape(orig_str) {
 		fixed_str := RegExReplace(orig_str, "'+", "''")
 		fixed_str := RegExReplace(fixed_str, '"+', '""')
 		return fixed_str
 	}
-
-	static UnEscape(orig_str)
-	{
+	static UnEscape(orig_str) {
 		fixed_str := StrReplace(orig_str, "'+", "'")
 		fixed_str := StrReplace(fixed_str, '"+', '"')
 		return fixed_str
