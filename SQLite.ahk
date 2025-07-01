@@ -293,14 +293,14 @@ class SQLite extends SQLite3 {
 			)
 				return true
 
-			; RETURNING turns DML into a result-set generator (SQLite ≥ 3.35) :contentReference[oaicite:2]{index=2}
+			; RETURNING turns DML into a result-set generator (SQLite ≥ 3.35)
 			if RegExMatch(sql, "i)(^|;)(INSERT|UPDATE|DELETE)\b.*\bRETURNING\b")
 				return true
 
 			return false
 
 			Sanitise(sql) {
-				sql := Trim(sql) ; strip whitespace  :contentReference[oaicite:0]{index=0}
+				sql := Trim(sql) ; strip whitespace
 				; yanked-from-PostgreSQL style: removes block- and line-comments
 				sql := RegExReplace(
 					sql,
