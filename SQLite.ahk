@@ -321,8 +321,8 @@ class SQLite extends SQLite3 {
 		return fixed_str
 	}
 	static UnEscape(orig_str) {
-		fixed_str := StrReplace(orig_str, "'+", "'")
-		fixed_str := StrReplace(fixed_str, '"+', '"')
+		fixed_str := RegexReplace(orig_str, "'+", "'")
+		fixed_str := RegexReplace(fixed_str, '"+', '"')
 		return fixed_str
 	}
 }
